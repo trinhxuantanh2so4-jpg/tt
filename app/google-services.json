@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "tt-app-demo",
-    "storage_bucket": "tt-app-demo.appspot.com"
+    "project_number": "967504573907",
+    "project_id": "apptt-5478e",
+    "storage_bucket": "apptt-5478e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:967504573907:android:ae88f0a22ddfddd0c5ab26",
         "android_client_info": {
           "package_name": "com.example.tt"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDUMMY_KEY_REPLACE_WITH_YOURS_000000000"
+          "current_key": "AIzaSyBrj6bYEMGAc5zBV1TIjLLblivehoHcJGI"
         }
       ],
       "services": {
