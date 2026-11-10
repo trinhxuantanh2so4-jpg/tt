@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TT App</string>
+    <string name="hello_message">Xin chào từ TT App! 👋</string>
+    <string name="button_hello">Bấm tôi</string>
+</resources>
