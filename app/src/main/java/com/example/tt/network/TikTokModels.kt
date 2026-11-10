@@ -14,7 +14,8 @@ data class TikTokApiResponse(
 )
 
 data class TikTokVideo(
-    val id: String?,
+    // endpoint /api/ tra "id", endpoint /api/feed/list tra "video_id" -> dung alternate
+    @SerializedName(value = "id", alternate = ["video_id"]) val id: String?,
     val title: String?,
     val cover: String?,          // anh bia
     @SerializedName("play") val playUrl: String?,      // KHONG LOGO (SD)
@@ -22,6 +23,7 @@ data class TikTokVideo(
     @SerializedName("wmplay") val wmPlayUrl: String?,  // CO LOGO
     val size: Long?,             // dung luong (bytes)
     @SerializedName("hd_size") val hdSize: Long?,
+    @SerializedName("wm_size") val wmSize: Long?,
     val duration: Long?,
     val music: String?,
     val author: TikTokAuthor?
@@ -30,15 +32,17 @@ data class TikTokVideo(
 data class TikTokAuthor(
     val id: String?,
     @SerializedName("unique_id") val uniqueId: String?,
-    val nickname: String?
+    val nickname: String?,
+    val avatar: String?
 )
 
-/** Trending feed: https://tikwm.com/api/feed/list?count=10 */
+/**
+ * Trending feed: https://tikwm.com/api/feed/list?count=10&region=VN
+ * Luu y: "data" la MANG video truc tiep (khong boc trong object),
+ * va bat buoc phai truyen tham so region (vd: VN).
+ */
 data class FeedResponse(
     val code: Int,
-    val data: FeedData?
-)
-
-data class FeedData(
-    val videos: List<TikTokVideo>?
+    val msg: String?,
+    val data: List<TikTokVideo>?
 )

@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val feed = ApiClient.api.getTrending(10)
-                val videos = feed.data?.videos ?: emptyList()
+                val videos = feed.data ?: emptyList()
                 trendingAdapter.submit(videos)
             } catch (_: Exception) {
                 toast("Không tải được danh sách thịnh hành")

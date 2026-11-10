@@ -16,9 +16,10 @@ interface TikTokApi {
         @Query("hd") hd: Int = 1
     ): TikTokApiResponse
 
-    /** Danh sach video trending TikTok */
+    /** Danh sach video trending TikTok (region bat buoc, vd "VN") */
     @GET("api/feed/list")
     suspend fun getTrending(
-        @Query("count") count: Int = 10
+        @Query("count") count: Int = 10,
+        @Query("region") region: String = "VN"
     ): FeedResponse
 }
