@@ -20,10 +20,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Runner ubuntu da co san Android SDK ($ANDROID_HOME).
-      # Chi can chap nhan license (AGP tu tai platform/build-tools con thieu).
+      # Runner ubuntu da co san Android SDK (env ANDROID_HOME).
+      # Chi can chap nhan license; AGP tu tai platform/build-tools con thieu.
       - name: Accept Android SDK licenses
-        run: yes | \"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager\" --licenses > /dev/null || true
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
