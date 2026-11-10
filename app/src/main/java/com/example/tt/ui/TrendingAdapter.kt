@@ -38,7 +38,8 @@ class TrendingAdapter(
         val v = items[position]
         with(holder.binding) {
             tvTitle.text = v.title ?: "Video TikTok"
-            tvAuthor.text = "👤 ${'$'}{v.author?.nickname ?: "Không rõ"}"
+            val authorName = v.author?.nickname ?: "Không rõ"
+            tvAuthor.text = "👤 $authorName"
             imgCover.load(v.cover) {
                 crossfade(true)
                 placeholder(R.drawable.ic_launcher_foreground)

@@ -32,7 +32,7 @@ object VideoDownloader {
     ): String = withContext(Dispatchers.IO) {
         val req = Request.Builder().url(url).build()
         client.newCall(req).execute().use { resp ->
-            if (!resp.isSuccessful) throw IllegalStateException("Loi tai: HTTP ${'$'}{resp.code}")
+            if (!resp.isSuccessful) throw IllegalStateException("Loi tai: HTTP ${resp.code}")
             val body = resp.body ?: throw IllegalStateException("Khong co du lieu")
             val total = body.contentLength()
 

@@ -50,13 +50,13 @@ class ProfileActivity : AppCompatActivity() {
                 profiles.getProfile(uid)
                     .onSuccess { p ->
                         if (p.name.isNotEmpty()) binding.tvName.text = p.name
-                        binding.tvDownloads.text = "${'$'}{p.downloadCount} video đã tải 📥"
+                        binding.tvDownloads.text = "${p.downloadCount} video đã tải 📥"
                     }
                     .onFailure { binding.tvDownloads.text = "Không kết nối được Firestore" }
                 binding.progress.visibility = View.GONE
             }
         } else {
-            binding.tvDownloads.text = "${'$'}{db.countDownloads()} video đã tải 📥 (SQLite)"
+            binding.tvDownloads.text = "${db.countDownloads()} video đã tải 📥 (SQLite)"
         }
 
         // 3) CAP NHAT ten -> ghi len Firestore + cache SQLite
@@ -72,7 +72,7 @@ class ProfileActivity : AppCompatActivity() {
                             binding.tvName.text = newName
                             toast("Đã lưu lên Firestore ✓")
                         }
-                        .onFailure { toast("Lỗi Firestore: ${'$'}{it.message}") }
+                        .onFailure { toast("Lỗi Firestore: ${it.message}") }
                 } else {
                     UserRepository(db).cacheProfile(uid, user.email, newName, "")
                     binding.tvName.text = newName

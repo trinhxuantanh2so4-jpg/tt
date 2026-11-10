@@ -43,7 +43,7 @@ object ApiClient {
         }
         val res = api.getVideo(url, 1)
         if (res.code != 0 || res.data == null) {
-            throw IllegalStateException(res.msg ?: "API loi: ${'$'}{res.code}")
+            throw IllegalStateException(res.msg ?: "API loi: ${res.code}")
         }
         val v = res.data
         val noWatermark = v.hdPlayUrl ?: v.playUrl

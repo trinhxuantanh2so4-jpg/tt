@@ -120,9 +120,9 @@ class MainActivity : AppCompatActivity() {
     private fun showVideoCard(rec: DownloadRecord) {
         binding.cardVideo.visibility = View.VISIBLE
         binding.tvTitle.text = rec.title
-        binding.tvAuthor.text = "👤 ${'$'}{rec.author}"
+        binding.tvAuthor.text = "👤 ${rec.author}"
         binding.tvQuality.text = if (rec.quality == "HD") "HD · Không logo" else "Không logo"
-        binding.tvSize.text = "💾 ${'$'}{rec.fileSize / 1024 / 1024} MB"
+        binding.tvSize.text = "💾 ${rec.fileSize / 1024 / 1024} MB"
         binding.tvDuration.text = "Nhấn tải để lưu vào máy"
         if (rec.coverUrl.isNotEmpty()) {
             binding.imgCover.load(rec.coverUrl) {
@@ -143,12 +143,12 @@ class MainActivity : AppCompatActivity() {
                 val path = VideoDownloader.download(
                     context = this@MainActivity,
                     url = rec.downloadUrl,
-                    fileName = "tiktok_${'$'}{rec.videoId}.mp4"
+                    fileName = "tiktok_${rec.videoId}.mp4"
                 ) { done, total ->
                     runOnUiThread {
                         if (total > 0) {
                             binding.progressDownload.progress = (done * 100 / total).toInt()
-                            binding.tvPercent.text = "${'$'}{done * 100 / total}%"
+                            binding.tvPercent.text = "${done * 100 / total}%"
                         }
                     }
                 }
@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
                 toast("✅ Đã lưu vào Download/TikTok")
                 binding.tvPercent.text = "Hoàn tất ✓"
             } catch (e: Exception) {
-                toast("Lỗi tải: ${'$'}{e.message}")
+                toast("Lỗi tải: ${e.message}")
             }
             setLoading(false)
         }

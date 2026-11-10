@@ -19,7 +19,7 @@ class AuthRepository(private val localUsers: UserRepository) {
     private val auth: FirebaseAuth? = try {
         FirebaseAuth.getInstance()
     } catch (e: Exception) {
-        Log.w("AuthRepository", "Firebase chua cau hinh: ${'$'}{e.message}")
+        Log.w("AuthRepository", "Firebase chua cau hinh: ${e.message}")
         null
     }
 

@@ -49,7 +49,7 @@ class HistoryActivity : AppCompatActivity() {
             val list = withContext(Dispatchers.IO) { db.getAllDownloads() }
             adapter.submit(list)
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-            binding.tvCount.text = "Tổng: ${'$'}{list.size} video · Yêu thích: ${'$'}{list.count { it.favorite == 1 }}"
+            binding.tvCount.text = "Tổng: ${list.size} video · Yêu thích: ${list.count { it.favorite == 1 }}"
         }
     }
 

@@ -33,7 +33,7 @@ class UserRepository(private val db: DatabaseHelper) {
             return Result.failure(IllegalArgumentException("Email/mat khau khong hop le (mat khau >= 6 ky tu)"))
         }
         val cv = ContentValues().apply {
-            put(DatabaseHelper.C_UID, "offline-${'$'}{System.currentTimeMillis()}")
+            put(DatabaseHelper.C_UID, "offline-${System.currentTimeMillis()}")
             put(DatabaseHelper.C_EMAIL, email.lowercase().trim())
             put(DatabaseHelper.C_NAME, name)
             put(DatabaseHelper.C_PASSWORD_HASH, hash(password, email))
@@ -61,7 +61,7 @@ class UserRepository(private val db: DatabaseHelper) {
         db.readableDatabase.use { sqlite ->
             sqlite.query(
                 DatabaseHelper.T_USERS, null,
-                "${'$'}{DatabaseHelper.C_EMAIL} = ? AND ${'$'}{DatabaseHelper.C_IS_OFFLINE} = 1",
+                "${DatabaseHelper.C_EMAIL} = ? AND ${DatabaseHelper.C_IS_OFFLINE} = 1",
                 arrayOf(e), null, null, null
             ).use { c ->
                 if (!c.moveToFirst()) return Result.failure(IllegalStateException("Tai khoan khong ton tai"))
@@ -102,7 +102,7 @@ class UserRepository(private val db: DatabaseHelper) {
         db.readableDatabase.use { sqlite ->
             sqlite.query(
                 DatabaseHelper.T_USERS, null,
-                "${'$'}{DatabaseHelper.C_UID} = ?", arrayOf(uid), null, null, null
+                "${DatabaseHelper.C_UID} = ?", arrayOf(uid), null, null, null
             ).use { c ->
                 if (!c.moveToFirst()) return null
                 return User(
@@ -131,7 +131,7 @@ class UserRepository(private val db: DatabaseHelper) {
         db.readableDatabase.use { sqlite ->
             sqlite.query(
                 DatabaseHelper.T_SESSIONS, null,
-                "${'$'}{DatabaseHelper.C_LOGGED_IN} = 1", null, null, null, null
+                "${DatabaseHelper.C_LOGGED_IN} = 1", null, null, null, null
             ).use { c ->
                 if (!c.moveToFirst()) return null
                 return c.getString(c.getColumnIndexOrThrow(DatabaseHelper.C_SESSION_UID))

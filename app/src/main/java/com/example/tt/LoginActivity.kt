@@ -66,7 +66,7 @@ class LoginActivity : AppCompatActivity() {
         lifecycleScope.launch {
             auth.login(email, pass)
                 .onSuccess {
-                    toast("Xin chào ${'$'}{it.name}!")
+                    toast("Xin chào ${it.name}!")
                     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     finish()
                 }

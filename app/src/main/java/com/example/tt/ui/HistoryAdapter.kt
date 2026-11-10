@@ -38,10 +38,9 @@ class HistoryAdapter(
         val rec = items[position]
         with(holder.binding) {
             tvTitle.text = rec.title
-            tvAuthor.text = "👤 ${'$'}{rec.author}"
-            tvSize.text = "${'$'}{rec.quality} · ${'$'}{rec.fileSize / 1024 / 1024} MB · ${'$'}{" +
-                SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(rec.createdAt))
-            }"
+            tvAuthor.text = "👤 ${rec.author}"
+            val time = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(rec.createdAt))
+            tvSize.text = "${rec.quality} · ${rec.fileSize / 1024 / 1024} MB · $time"
             imgCover.load(rec.coverUrl) {
                 crossfade(true)
                 placeholder(R.drawable.ic_launcher_foreground)
