@@ -47,12 +47,12 @@ class LoginActivity : AppCompatActivity() {
             binding.tvTitle.text = "Tạo tài khoản"
             binding.btnAction.text = "Đăng ký"
             binding.tvSwitchMode.text = "Đã có tài khoản? Đăng nhập"
-            binding.etName.visibility = View.VISIBLE
+            binding.tilName.visibility = View.VISIBLE
         } else {
             binding.tvTitle.text = "Đăng nhập"
             binding.btnAction.text = "Đăng nhập"
             binding.tvSwitchMode.text = "Chưa có tài khoản? Đăng ký"
-            binding.etName.visibility = View.GONE
+            binding.tilName.visibility = View.GONE
         }
     }
 

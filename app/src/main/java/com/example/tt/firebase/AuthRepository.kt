@@ -3,7 +3,6 @@ package com.example.tt.firebase
 import android.util.Log
 import com.example.tt.data.UserRepository
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.userProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 
@@ -12,8 +11,8 @@ import kotlinx.coroutines.tasks.await
  * Dang ky / Dang nhap / Dang xuat / Lay user hien tai.
  *
  * Chien luoc du phong: neu Firebase chua cau hinh that (google-services.json
- * dang la ban demo) thi tu chuyen sang che do OFFLINE bang SQLite de app
- * van chay duoc ngay khi demo.
+ * dang la ban demo) hoac loi mang thi tu chuyen sang che do OFFLINE bang SQLite
+ * de app van chay duoc ngay khi demo.
  */
 class AuthRepository(private val localUsers: UserRepository) {
 
@@ -29,10 +28,9 @@ class AuthRepository(private val localUsers: UserRepository) {
     // ---------- DANG KY ----------
     suspend fun register(email: String, password: String, name: String): Result<UserRepository.User> {
         val a = auth
-            ?: return localUsers.registerOffline(email, password, name) // du phong
+            ?: return localUsers.registerOffline(email, password, name) // Firebase chua cau hinh
         return try {
             val result = a.createUserWithEmailAndPassword(email, password).await()
-            // Cap nhat displayName ngay tren backend Firebase
             result.user?.updateProfile(
                 userProfileChangeRequest { displayName = name }
             )?.await()
@@ -41,14 +39,15 @@ class AuthRepository(private val localUsers: UserRepository) {
             localUsers.saveSession(u.uid)
             Result.success(UserRepository.User(u.uid, email, name, "", false))
         } catch (e: Exception) {
-            Result.failure(e)
+            // Firebase loi (chua cau hinh that / mat mang) -> du phong offline SQLite
+            localUsers.registerOffline(email, password, name)
         }
     }
 
     // ---------- DANG NHAP ----------
     suspend fun login(email: String, password: String): Result<UserRepository.User> {
         val a = auth
-            ?: return localUsers.loginOffline(email, password) // du phong
+            ?: return localUsers.loginOffline(email, password) // Firebase chua cau hinh
         return try {
             val result = a.signInWithEmailAndPassword(email, password).await()
             val u = result.user!!
@@ -58,7 +57,8 @@ class AuthRepository(private val localUsers: UserRepository) {
             localUsers.saveSession(u.uid)
             Result.success(UserRepository.User(u.uid, email, name, "", false))
         } catch (e: Exception) {
-            Result.failure(e)
+            // Firebase loi -> thu dang nhap offline (tai khoan da tao khi demo)
+            localUsers.loginOffline(email, password)
         }
     }
 
@@ -68,7 +68,7 @@ class AuthRepository(private val localUsers: UserRepository) {
         localUsers.clearSession()
     }
 
-    // ---------- USER HIEN TAI (tu SQLite session cho nhanh) ----------
+    // ---------- USER HIEN TAI ----------
     fun currentUser(): UserRepository.User? {
         val uid = localUsers.currentSessionUid() ?: return null
         return localUsers.getCachedProfile(uid)
