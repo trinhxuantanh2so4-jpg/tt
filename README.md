@@ -18,7 +18,7 @@ App trình diễn **3 kỹ thuật chính**:
 | Màn hình | Chức năng |
 |----------|-----------|
 | **LoginActivity** | Đăng nhập / Đăng ký (Firebase Auth, tự dự phòng offline bằng SQLite nếu chưa cấu hình Firebase) |
-| **MainActivity** | Dán link TikTok → phân tích qua API → tải video không logo; hiển thị video thịnh hành từ API |
+| **MainActivity** | Dán link TikTok → phân tích qua API → tải video không logo; hiển thị video thịnh hành từ API; **chọn nơi lưu file trước khi tải** (trình chọn tệp của hệ thống) |
 | **HistoryActivity** | Lịch sử tải từ SQLite: xem danh sách (SELECT), yêu thích (UPDATE), xóa 1 dòng / xóa hết (DELETE) |
 | **ProfileActivity** | Hồ sơ từ Firestore: xem tên, email, số video đã tải; đổi tên (ghi lên backend); đăng xuất |
 
@@ -307,7 +307,7 @@ app/src/main/java/com/example/tt/
 ├── firebase/                       # KỸ THUẬT 3: BACKEND
 │   ├── AuthRepository.kt           #   Auth: register/login/logout + fallback offline
 │   └── ProfileRepository.kt        #   Firestore: đọc/ghi profile + transaction counter
-├── download/VideoDownloader.kt     # OkHttp tải file + MediaStore (có % tiến độ)
+├── download/VideoDownloader.kt     # OkHttp tải file + MediaStore / Uri người dùng chọn (có % tiến độ)
 └── ui/                             # RecyclerView adapters
     ├── HistoryAdapter.kt
     └── TrendingAdapter.kt
@@ -319,7 +319,32 @@ Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải �
 
 - **minSdk:** 26 (Android 8.0+) · **targetSdk:** 35 · AGP 8.7.3 · Kotlin 2.0.21 · Gradle 8.10.2
 - Video lưu vào: Android 10+ → `Download/TikTok` (qua MediaStore, không cần quyền) · Android 8–9 → thư mục riêng của app
+- Hoặc **tự chọn nơi lưu**: bật ô *“Chọn nơi lưu khi tải”* → app mở trình chọn tệp của hệ thống (SAF) để bạn đặt tên file + chọn thư mục bất kỳ
 - Quyền sử dụng: `INTERNET`, `ACCESS_NETWORK_STATE`, `WRITE_EXTERNAL_STORAGE` (chỉ Android ≤ 9)
+
+# 📂 Chọn nơi lưu file (Storage Access Framework)
+
+Trong card video có checkbox **“Chọn nơi lưu khi tải (mở trình chọn tệp)”** (mặc định bật, được ghi nhớ trong `SharedPreferences`):
+
+| Trạng thái | Hành vi khi bấm **Tải video** |
+|-----------|-------------------------------|
+| ✅ Bật | Mở hộp thoại hệ thống `ACTION_CREATE_DOCUMENT` → người dùng tự đặt tên file + chọn thư mục (bộ nhớ trong, thẻ SD, Google Drive…). App ghi thẳng vào `Uri` trả về, **không cần quyền truy cập bộ nhớ** |
+| ⬜ Tắt | Lưu mặc định như cũ: Android 10+ → `Download/TikTok`, Android 8–9 → thư mục riêng của app |
+
+Luồng code:
+
+```
+MainActivity.btnDownload
+  └─ ActivityResultContracts.CreateDocument("video/mp4")   // mở trình chọn tệp
+       └─ Uri trả về
+            └─ VideoDownloader.downloadToUri(context, url, uri) { done, total -> %}   // ghi qua ContentResolver
+                 └─ SQLite: downloads.file_path = uri.toString()
+```
+
+- `VideoDownloader.downloadToUri()` dùng `contentResolver.openOutputStream(uri)` nên ghi được vào bất kỳ vị trí nào người dùng chọn.
+- Nếu người dùng bấm **Back** (huỷ) → không tải, chỉ hiện thông báo.
+- Nếu tải lỗi giữa chừng → file rỗng vừa tạo được xoá tự động (`contentResolver.delete`).
+- Hàm `download()` cũ vẫn giữ nguyên làm chế độ lưu nhanh khi tắt checkbox.
 
 # 📝 Ghi chú pháp lý
 
