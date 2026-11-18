@@ -30,6 +30,7 @@ Cả 4 màn hình chính dùng chung **BottomNavigationView** (Tải · Thịnh 
 # 🎨 GIAO DIỆN & TRẢI NGHIỆM (UI/UX)
 
 Kế hoạch chi tiết: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md)
+Kế hoạch Douyin + vietsub/thuyết minh (Moonshine AI): [`docs/DOUYIN_VIETSUB_PLAN.md`](docs/DOUYIN_VIETSUB_PLAN.md)
 
 | Hạng mục | Nội dung đã làm |
 |----------|-----------------|
