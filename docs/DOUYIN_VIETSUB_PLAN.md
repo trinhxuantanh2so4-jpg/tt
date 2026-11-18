@@ -301,9 +301,13 @@ Phase A (Douyin)  →  Phase B (ASR + SRT + player)  →  Phase C (dịch VI)
 
 ---
 
-## 12. Quyết định cần chốt trước khi code
+## 12. Quyết định đã chốt
 
-1. **Thuyết minh mặc định**: TTS hệ thống (khuyến nghị) hay thử Moonshine TTS?
-2. **Có làm phụ đề cứng (burn-in) ngay** hay để sau MVP? (encode lại rất chậm trên máy yếu)
-3. **Ngôn ngữ nguồn**: tự động theo nền tảng (Douyin→Trung, TikTok→Anh) hay luôn cho người dùng chọn?
-4. **Có cần bản dịch offline không cần Play services** (Opus-MT ONNX ~80 MB) hay chấp nhận ML Kit?
+| # | Vấn đề | Chốt |
+|---|--------|------|
+| 1 | Engine thuyết minh | **Cả hai**: interface `TtsEngine`, mặc định **TTS hệ thống** (Google `vi-VN`), cho người dùng đổi sang **Moonshine TTS** trong Hồ sơ |
+| 2 | Phụ đề cứng (burn-in) | **Để sau MVP** — MVP chỉ có phụ đề mềm (`.srt` + xem trong app); burn-in nằm ở Phase E, mặc định tắt |
+| 3 | Ngôn ngữ nguồn | **Tự động theo nền tảng** (Douyin → `zh`, TikTok → `en`), vẫn cho đổi tay trong BottomSheet |
+| 4 | Dịch | **Chỉ dùng ML Kit**; máy thiếu Play services → giữ phụ đề gốc + báo lỗi rõ, không thêm Opus-MT ở đợt này |
+
+**Thứ tự thực hiện chốt:** Phase A → B → C (**MVP**, ~4 ngày) → D (thuyết minh, 2 engine) → E (burn-in + job nền) → F (polish).
