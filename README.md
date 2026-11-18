@@ -1,6 +1,6 @@
 # TT Downloader 📱
 
-App Android tải video **TikTok không logo** (no watermark), tích hợp **đăng nhập Firebase** và **lịch sử tải SQLite**.
+App Android tải video **TikTok & Douyin (抖音) không logo** (no watermark), tích hợp **đăng nhập Firebase** và **lịch sử tải SQLite**.
 
 > 🔗 **Repo:** https://github.com/trinhxuantanh2so4-jpg/tt
 > 📥 **Tải APK chạy thử ngay:** https://github.com/trinhxuantanh2so4-jpg/tt/releases (file `app-debug.apk`)
@@ -10,7 +10,7 @@ App trình diễn **3 kỹ thuật chính**:
 | # | Kỹ thuật | Áp dụng trong app |
 |---|----------|-------------------|
 | 1 | **SQLite** | Lịch sử tải video, cache profile, phiên đăng nhập, tài khoản offline dự phòng — CRUD đầy đủ (3 bảng, index, transaction) |
-| 2 | **Gọi API mạng** | Retrofit + OkHttp gọi API miễn phí `tikwm.com` để phân tích link TikTok + danh sách video thịnh hành |
+| 2 | **Gọi API mạng** | Retrofit + OkHttp gọi API miễn phí `tikwm.com` cho TikTok; bộ parse `iesdouyin.com` (OkHttp + Gson) cho Douyin + danh sách video thịnh hành |
 | 3 | **Firebase backend** | Đăng ký / Đăng nhập (Firebase Auth) + lưu & đọc profile người dùng (Cloud Firestore) — app gọi tới backend mình tự tạo trên Firebase Console |
 
 ## Màn hình
@@ -18,7 +18,7 @@ App trình diễn **3 kỹ thuật chính**:
 | Màn hình | Chức năng |
 |----------|-----------|
 | **LoginActivity** | Đăng nhập / Đăng ký (Firebase Auth, tự dự phòng offline bằng SQLite nếu chưa cấu hình Firebase); validate ngay trên ô nhập, ghi nhớ email |
-| **MainActivity** | Tab **Tải video**: dán link (hoặc chia sẻ link từ TikTok sang app) → phân tích qua API → tải video không logo; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
+| **MainActivity** | Tab **Tải video**: dán/chia sẻ link **TikTok hoặc Douyin** → tự nhận nền tảng → phân tích → tải video không logo; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
 | **TrendingActivity** | Tab **Thịnh hành**: grid 2 cột video hot, kéo xuống để làm mới, nhấn để chuẩn bị tải |
 | **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận, mở lại video |
 | **ProfileActivity** | Tab **Hồ sơ**: profile Firestore + thống kê dung lượng từ SQLite, đổi tên, đăng xuất có xác nhận |
@@ -37,7 +37,7 @@ Kế hoạch Douyin + vietsub/thuyết minh (Moonshine AI): [`docs/DOUYIN_VIETSU
 | **Design system** | `colors.xml` (light) + `values-night/colors.xml` (dark), `dimens.xml`, `styles.xml`; toàn bộ chữ đưa vào `strings.xml` |
 | **Sáng / Tối** | `Theme.Material3.DayNight` + màu semantic (`surface`, `text_primary`, `accent`…) nên app tự đổi theo chế độ của máy; có splash screen |
 | **Điều hướng** | Bottom nav 4 tab + toolbar, chuyển tab không tạo lại màn hình (`FLAG_ACTIVITY_REORDER_TO_FRONT`) |
-| **Màn Tải video** | Icon **Dán** trong ô link, tự gợi ý link đang có trong clipboard, nhận `ACTION_SEND` (chia sẻ từ TikTok), card ảnh bo góc + chip chất lượng + thời lượng, dòng **Nơi lưu** bấm được, công tắc tự chọn nơi lưu, progress % + tốc độ, nút **Huỷ** |
+| **Màn Tải video** | Icon **Dán** trong ô link, tự gợi ý link đang có trong clipboard, nhận `ACTION_SEND` (chia sẻ từ TikTok/Douyin), card ảnh bo góc + chip **nền tảng · chất lượng** + thời lượng, dòng **Nơi lưu** bấm được, công tắc tự chọn nơi lưu, progress % + tốc độ, nút **Huỷ** |
 | **Trạng thái** | Skeleton/đang tải, **empty state** (hướng dẫn), **error state** + nút Thử lại cho cả 2 tab mạng |
 | **Thịnh hành** | Grid 2 cột tỉ lệ 9:16, gradient + thời lượng, `SwipeRefreshLayout`, `ListAdapter`/`DiffUtil` |
 | **Lịch sử** | Tìm kiếm theo tiêu đề/tác giả, FilterChip Tất cả/Yêu thích, swipe-to-delete + Snackbar **Hoàn tác**, dialog xác nhận xoá hết, mở video qua MediaStore/FileProvider |
@@ -158,6 +158,20 @@ interface TikTokApi {
 
 - Phân tích link: `https://tikwm.com/api/?url=https://www.tiktok.com/@tieuthat2000/video/7676427551027350802&hd=1`
 - Thịnh hành VN: `https://tikwm.com/api/feed/list?count=10&region=VN`
+
+## Douyin (抖音) — tải không logo không cần API key
+
+Khác với TikTok, app **không dùng dịch vụ trung gian** cho Douyin. Luồng xử lý trong `douyin/`:
+
+1. `UrlParser` tách link từ text chia sẻ (tiếng Trung) và nhận diện `v.douyin.com` / `douyin.com` / `iesdouyin.com`.
+2. `DouyinResolver` gửi `GET` với **User-Agent mobile**, theo redirect để lấy `aweme_id`.
+3. Lấy `https://www.iesdouyin.com/share/video/{aweme_id}` → JSON trong `window._ROUTER_DATA`.
+4. `DouyinParser` (Gson, cân bằng ngoặc) đọc `loaderData → videoInfoRes → item_list[0]`:
+   `video.play_addr.url_list[0]` → đổi `playwm` thành `play` ⇒ **MP4 không logo**.
+5. Dự phòng: `iesdouyin.com/web/api/v2/aweme/iteminfo/` → `douyin.com/aweme/v1/web/aweme/detail/`.
+6. Album ảnh / video riêng tư → báo lỗi rõ ràng, không crash.
+
+`VideoResolver.resolve()` là cửa vào chung: dùng `VideoPlatform` để chọn provider TikTok hoặc Douyin. File tải về được đặt tên `douyin_{id}.mp4` / `tiktok_{id}.mp4` và lưu vào `Download/Douyin` hoặc `Download/TikTok`.
 
 ---
 
@@ -323,10 +337,16 @@ app/src/main/java/com/example/tt/
 │   ├── DatabaseHelper.kt           #   3 bảng + index + transaction + CRUD
 │   ├── DownloadRecord.kt           #   model lịch sử
 │   └── UserRepository.kt           #   users cache + offline auth + session
-├── network/                        # KỸ THUẬT 2: API
+├── network/                        # KỸ THUẬT 2: API + nhận diện link
 │   ├── TikTokApi.kt                #   Retrofit interface (tikwm.com)
-│   ├── ApiClient.kt                #   singleton + chuẩn hoá kết quả (VideoInfo)
+│   ├── ApiClient.kt                #   tikwm -> VideoInfo (chuẩn hoá kết quả)
+│   ├── VideoPlatform.kt            #   enum TikTok | Douyin
+│   ├── UrlParser.kt                #   tách link từ text chia sẻ, nhận diện nền tảng
+│   ├── VideoResolver.kt            #   cửa vào chung: chọn provider theo nền tảng
 │   └── TikTokModels.kt             #   response models (Gson)
+├── douyin/                         # TẢI DOUYIN KHÔNG LOGO
+│   ├── DouyinResolver.kt           #   OkHttp + UA mobile + redirect + fallback API
+│   └── DouyinParser.kt             #   parse window._ROUTER_DATA (Gson thuần)
 ├── firebase/                       # KỸ THUẬT 3: BACKEND
 │   ├── AuthRepository.kt           #   Auth: register/login/logout + fallback offline
 │   └── ProfileRepository.kt        #   Firestore: đọc/ghi profile + transaction counter
@@ -335,10 +355,12 @@ app/src/main/java/com/example/tt/
     ├── HistoryAdapter.kt           #   ListAdapter + DiffUtil
     ├── TrendingAdapter.kt          #   ListAdapter grid 2 cột
     ├── BottomNav.kt                #   bottom navigation dùng chung
-    └── Format.kt                   #   format bytes/tốc độ/thời gian + parse link
+    └── Format.kt                   #   format bytes/tốc độ/thời gian (parse link ở network/UrlParser.kt)
 ```
 
-Tài liệu: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md)
+Unit test JVM: `app/src/test/java/com/example/tt/` (`UrlParserTest`, `DouyinParserTest`), chạy trong CI bằng `gradle testDebugUnitTest`.
+
+Tài liệu: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md) · [`docs/DOUYIN_VIETSUB_PLAN.md`](docs/DOUYIN_VIETSUB_PLAN.md)
 
 # ⚙️ Công nghệ
 
@@ -346,7 +368,7 @@ Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải �
 
 - **minSdk:** 26 (Android 8.0+) · **targetSdk:** 35 · AGP 8.7.3 · Kotlin 2.0.21 · Gradle 8.10.2
 - Giao diện: `Theme.Material3.DayNight` + `values-night` → tự đổi sáng/tối; toàn bộ màu/kích thước/chữ tập trung ở `colors.xml`, `dimens.xml`, `styles.xml`, `strings.xml`
-- Video lưu vào: Android 10+ → `Download/TikTok` (qua MediaStore, không cần quyền) · Android 8–9 → thư mục riêng của app
+- Video lưu vào: Android 10+ → `Download/TikTok` hoặc `Download/Douyin` (qua MediaStore, không cần quyền) · Android 8–9 → thư mục riêng của app
 - Hoặc **tự chọn nơi lưu**: bật công tắc *“Tự chọn nơi lưu mỗi lần tải”* → app mở trình chọn tệp của hệ thống (SAF) để bạn đặt tên file + chọn thư mục bất kỳ
 - Quyền sử dụng: `INTERNET`, `ACCESS_NETWORK_STATE`, `WRITE_EXTERNAL_STORAGE` (chỉ Android ≤ 9)
 
@@ -357,7 +379,7 @@ Trong card video có dòng **Nơi lưu** + công tắc **“Tự chọn nơi lư
 | Trạng thái | Hành vi khi bấm **Tải video** |
 |-----------|-------------------------------|
 | ✅ Bật | Mở hộp thoại hệ thống `ACTION_CREATE_DOCUMENT` → người dùng tự đặt tên file + chọn thư mục (bộ nhớ trong, thẻ SD, Google Drive…). App ghi thẳng vào `Uri` trả về, **không cần quyền truy cập bộ nhớ** |
-| ⬜ Tắt | Lưu mặc định: Android 10+ → `Download/TikTok`, Android 8–9 → thư mục riêng của app |
+| ⬜ Tắt | Lưu mặc định: Android 10+ → `Download/TikTok` hoặc `Download/Douyin`, Android 8–9 → thư mục riêng của app |
 
 Luồng code:
 

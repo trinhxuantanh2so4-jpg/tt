@@ -44,14 +44,3 @@ fun relativeTime(timestamp: Long): CharSequence =
         DateUtils.MINUTE_IN_MILLIS,
         DateUtils.FORMAT_ABBREV_RELATIVE
     )
-
-/** Kiem tra nhanh mot chuoi co phai link TikTok khong */
-fun isTikTokUrl(text: String): Boolean =
-    text.contains("tiktok.com", ignoreCase = true) ||
-        text.contains("vm.tiktok.com", ignoreCase = true)
-
-/** Tach link TikTok dau tien trong mot doan text (vd: text chia se tu app TikTok) */
-fun extractTikTokUrl(text: String): String? {
-    val regex = Regex("""https?://[^\s]*tiktok\.com[^\s]*""", RegexOption.IGNORE_CASE)
-    return regex.find(text)?.value
-}

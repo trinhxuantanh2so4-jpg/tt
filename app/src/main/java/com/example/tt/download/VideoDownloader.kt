@@ -28,8 +28,10 @@ object VideoDownloader {
     private val client = OkHttpClient()
 
     /**
-     * Tai ve vi tri mac dinh (Download/TikTok hoac thu muc app).
+     * Tai ve vi tri mac dinh (Download/<folder> hoac thu muc app).
      *
+     * @param fileName ten file (vd: tiktok_123.mp4)
+     * @param folder ten thu muc con trong Download ("TikTok" / "Douyin")
      * @param onProgress (da tai, tong) - cap nhat % cho UI
      * @return duong dan file da luu
      */
@@ -37,16 +39,21 @@ object VideoDownloader {
         context: Context,
         url: String,
         fileName: String,
+        folder: String = "TikTok",
         onProgress: (Long, Long) -> Unit
     ): String = withContext(Dispatchers.IO) {
+        val safeFolder = safeName(folder)
         fetch(url) { input, total ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10+: ghi qua MediaStore vao Download/TikTok
+                // Android 10+: ghi qua MediaStore vao Download/<folder>
                 val name = safeName(fileName)
                 val cv = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, name)
                     put(MediaStore.Downloads.MIME_TYPE, "video/mp4")
-                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/TikTok")
+                    put(
+                        MediaStore.Downloads.RELATIVE_PATH,
+                        Environment.DIRECTORY_DOWNLOADS + "/" + safeFolder
+                    )
                 }
                 val uri = context.contentResolver.insert(
                     MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv
@@ -54,11 +61,11 @@ object VideoDownloader {
                 context.contentResolver.openOutputStream(uri)?.use { out ->
                     copyWithProgress(input, out, total, onProgress)
                 } ?: throw IllegalStateException("Khong mo duoc file")
-                "Download/TikTok/$name"
+                "Download/$safeFolder/$name"
             } else {
                 // Android 8-9: luu vao thu muc rieng cua app (an toan, khong can quyen)
                 val dir = File(
-                    context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "TikTok"
+                    context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), safeFolder
                 ).apply { mkdirs() }
                 val file = File(dir, safeName(fileName))
                 file.outputStream().use { out ->

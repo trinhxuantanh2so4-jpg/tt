@@ -30,21 +30,26 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          gradle testDebugUnitTest --no-daemon --stacktrace 2>&1 | tee test.log
+
       - name: Build debug APK
         run: |
           set -o pipefail
           gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
 
-      # Ghi loi build ra annotation de xem duoc ma khong can quyen xem log
+      # Ghi loi build/test ra annotation de xem duoc ma khong can quyen xem log
       - name: Report build errors
         if: failure()
         run: |
-          grep -n -E "^e: |error:|Unresolved reference|FAILURE: Build|What went wrong|Could not resolve|Caused by|Execution failed|AAPT|Android resource" build.log \
+          cat build.log test.log 2>/dev/null | grep -n -E "^e: |error:|Unresolved reference|FAILURE: Build|What went wrong|Could not resolve|Caused by|Execution failed|AAPT|Android resource|tests? (completed|failed)|There were failing tests" \
             | sed 's/\r//g' | cut -c1-900 | head -8 | while IFS= read -r line; do
               echo "::error::$line"
             done
           echo "---- deps ----"
-          grep -n -E "^\\* What went wrong|^> " build.log | head -5 || true
+          cat build.log test.log 2>/dev/null | grep -n -E "^\\* What went wrong|^> " | head -5 || true
         continue-on-error: true
 
       - name: Upload APK to release

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TT Downloader</string>
-    <string name="app_tagline">Tải video TikTok không logo</string>
+    <string name="app_tagline">Tải video TikTok &amp; Douyin không logo</string>
 
     <!-- ===== Dieu huong ===== -->
     <string name="nav_download">Tải video</string>
@@ -10,35 +10,38 @@
     <string name="nav_profile">Hồ sơ</string>
 
     <!-- ===== Man tai video ===== -->
-    <string name="main_subtitle">Dán link để tải video không logo</string>
-    <string name="hint_url">Dán link video TikTok…</string>
+    <string name="main_subtitle">Dán link TikTok hoặc Douyin để tải video không logo</string>
+    <string name="hint_url">Dán link TikTok hoặc Douyin…</string>
     <string name="action_paste">Dán link từ clipboard</string>
     <string name="action_analyze">Phân tích link</string>
     <string name="action_download">Tải video</string>
     <string name="action_cancel">Huỷ</string>
     <string name="action_retry">Thử lại</string>
+    <string name="platform_tiktok">TikTok</string>
+    <string name="platform_douyin">Douyin</string>
+    <string name="chip_platform_quality">%1$s · %2$s</string>
     <string name="quality_hd">HD · Không logo</string>
     <string name="quality_no_wm">Không logo</string>
     <string name="save_to_label">Lưu tại</string>
-    <string name="save_default_path">Download/TikTok</string>
+    <string name="save_default_path">Download/TikTok · Douyin</string>
     <string name="save_each_time">Bạn chọn mỗi lần tải</string>
     <string name="switch_choose_location">Tự chọn nơi lưu mỗi lần tải</string>
 
     <string name="empty_title">Chưa có video nào</string>
-    <string name="empty_desc">Dán link TikTok ở trên rồi bấm Phân tích link.\nBạn cũng có thể chia sẻ link từ TikTok sang app này.</string>
+    <string name="empty_desc">Dán link TikTok hoặc Douyin ở trên rồi bấm Phân tích link.\nBạn cũng có thể chia sẻ link từ TikTok/Douyin sang app này.</string>
     <string name="error_title">Không phân tích được link</string>
     <string name="error_desc">Kiểm tra kết nối mạng rồi thử lại.</string>
 
     <string name="loading_analyzing">Đang phân tích link…</string>
     <string name="loading_downloading">Đang tải video…</string>
-    <string name="toast_paste_empty">Clipboard không có link TikTok</string>
+    <string name="toast_paste_empty">Clipboard không có link TikTok hoặc Douyin</string>
     <string name="toast_paste_done">Đã dán link từ clipboard</string>
-    <string name="toast_need_link">Vui lòng dán link từ tiktok.com</string>
+    <string name="toast_need_link">Vui lòng dán link TikTok hoặc Douyin</string>
     <string name="toast_need_analyze">Phân tích link trước đã!</string>
     <string name="toast_choose_canceled">Đã huỷ chọn nơi lưu</string>
     <string name="toast_no_video">Không còn video để lưu, hãy phân tích lại link</string>
     <string name="toast_saved_custom">Đã lưu vào vị trí bạn chọn</string>
-    <string name="toast_saved_default">Đã lưu vào Download/TikTok</string>
+    <string name="toast_saved_default">Đã lưu vào Download/%1$s</string>
     <string name="toast_download_canceled">Đã huỷ tải video</string>
     <string name="toast_download_error">Lỗi tải: %1$s</string>
     <string name="toast_analyze_error">Không phân tích được link</string>

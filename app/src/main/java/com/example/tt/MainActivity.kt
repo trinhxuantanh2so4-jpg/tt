@@ -20,12 +20,12 @@ import com.example.tt.databinding.ActivityMainBinding
 import com.example.tt.download.VideoDownloader
 import com.example.tt.firebase.AuthRepository
 import com.example.tt.firebase.ProfileRepository
-import com.example.tt.network.ApiClient
-import com.example.tt.ui.extractTikTokUrl
+import com.example.tt.network.UrlParser
+import com.example.tt.network.VideoPlatform
+import com.example.tt.network.VideoResolver
 import com.example.tt.ui.formatBytes
 import com.example.tt.ui.formatDuration
 import com.example.tt.ui.formatSpeed
-import com.example.tt.ui.isTikTokUrl
 import com.example.tt.ui.setupBottomNav
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -35,8 +35,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * Man chinh (tab "Tai video"):
- *  1. Dan / chia se link TikTok -> goi API tikwm.com lay link KHONG LOGO
- *  2. Chon noi luu (trinh chon tep he thong) hoac luu mac dinh Download/TikTok
+ *  1. Dan / chia se link TikTok hoac Douyin -> VideoResolver chon dung provider
+ *     (TikTok: tikwm.com, Douyin: trang share iesdouyin) de lay link KHONG LOGO
+ *  2. Chon noi luu (trinh chon tep he thong) hoac luu mac dinh Download/TikTok|Douyin
  *  3. Tai video co tien do + toc do + huy giua chung
  *  4. Luu lich su SQLite + tang bo dem Firestore
  */
@@ -136,7 +137,7 @@ class MainActivity : AppCompatActivity() {
 
         if (intent.action == Intent.ACTION_SEND) {
             val shared = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
-            val url = extractTikTokUrl(shared) ?: shared.takeIf { isTikTokUrl(it) } ?: return
+            val url = UrlParser.extractUrl(shared) ?: return
             // Khong xu ly lai cung 1 link (onResume / onNewIntent co the goi nhieu lan)
             if (url == lastHandledUrl) return
             lastHandledUrl = url
@@ -171,8 +172,10 @@ class MainActivity : AppCompatActivity() {
 
     // ---------------- GOI API: PHAN TICH LINK ----------------
     private fun analyze() {
-        val url = binding.etUrl.text.toString().trim()
-        if (!isTikTokUrl(url)) {
+        val raw = binding.etUrl.text.toString().trim()
+        // Nguoi dung co the dan ca text chia se (Douyin/Trung Quoc) -> tach link truoc
+        val url = UrlParser.extractUrl(raw) ?: raw
+        if (UrlParser.platformOf(url) == null) {
             toast(getString(R.string.toast_need_link))
             return
         }
@@ -180,7 +183,7 @@ class MainActivity : AppCompatActivity() {
         showLoading(true)
         lifecycleScope.launch {
             try {
-                val info = ApiClient.fetchVideoInfo(url)
+                val info = VideoResolver.resolve(url)
                 current = info.record
                 currentDuration = info.duration
                 binding.progressDownload.progress = 0
@@ -206,11 +209,16 @@ class MainActivity : AppCompatActivity() {
         binding.tvTitle.text = rec.title
         binding.tvAuthor.text = rec.author
         binding.tvSize.text = formatBytes(rec.fileSize)
-        binding.tvQualityChip.text = if (rec.quality == "HD") {
+        val quality = if (rec.quality == "HD") {
             getString(R.string.quality_hd)
         } else {
             getString(R.string.quality_no_wm)
         }
+        binding.tvQualityChip.text = getString(
+            R.string.chip_platform_quality,
+            platformName(rec.platform),
+            quality
+        )
 
         val durationText = formatDuration(duration)
         binding.tvDuration.text = durationText
@@ -233,6 +241,22 @@ class MainActivity : AppCompatActivity() {
         binding.layoutError.visibility = View.VISIBLE
     }
 
+    /** Ten hien thi cua nen tang (tieng Viet). */
+    private fun platformName(platform: VideoPlatform): String = when (platform) {
+        VideoPlatform.DOUYIN -> getString(R.string.platform_douyin)
+        VideoPlatform.TIKTOK -> getString(R.string.platform_tiktok)
+    }
+
+    /** Thu muc mac dinh trong Download cho tung nen tang. */
+    private fun folderName(platform: VideoPlatform): String = when (platform) {
+        VideoPlatform.DOUYIN -> "Douyin"
+        VideoPlatform.TIKTOK -> "TikTok"
+    }
+
+    /** Tien to ten file: douyin_..., tiktok_... */
+    private fun fileBaseName(rec: DownloadRecord): String =
+        "${rec.platform.id}_${rec.videoId}".replace(Regex("[^A-Za-z0-9._-]"), "_")
+
     private fun showLoading(on: Boolean) {
         binding.layoutLoading.visibility = if (on) View.VISIBLE else View.GONE
         binding.btnAnalyze.isEnabled = !on
@@ -252,9 +276,7 @@ class MainActivity : AppCompatActivity() {
         }
         if (binding.swChooseLocation.isChecked) {
             pendingRecord = rec
-            val suggested = "tiktok_${rec.videoId}.mp4"
-                .replace(Regex("[^A-Za-z0-9._-]"), "_")
-            saveFileLauncher.launch(suggested)
+            saveFileLauncher.launch("${fileBaseName(rec)}.mp4")
         } else {
             startDownload(rec, null)
         }
@@ -272,6 +294,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnCancel.visibility = View.VISIBLE
 
         downloadJob = lifecycleScope.launch {
+            val folder = folderName(rec.platform)
             try {
                 val path = if (target != null) {
                     VideoDownloader.downloadToUri(
@@ -283,7 +306,8 @@ class MainActivity : AppCompatActivity() {
                     VideoDownloader.download(
                         context = this@MainActivity,
                         url = rec.downloadUrl,
-                        fileName = "tiktok_${rec.videoId}.mp4"
+                        fileName = "${fileBaseName(rec)}.mp4",
+                        folder = folder
                     ) { done, total -> onProgress(done, total) }
                 }
 
@@ -309,7 +333,7 @@ class MainActivity : AppCompatActivity() {
                 binding.tvPercent.text = getString(R.string.done_percent)
                 toast(
                     if (target != null) getString(R.string.toast_saved_custom)
-                    else getString(R.string.toast_saved_default)
+                    else getString(R.string.toast_saved_default, folder)
                 )
             } catch (ce: CancellationException) {
                 // File vua tao (neu co) -> xoa de khong con file rong
@@ -368,7 +392,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun pasteFromClipboard(announce: Boolean) {
         val text = readClipboard()
-        val url = text?.let { extractTikTokUrl(it) ?: it.takeIf { t -> isTikTokUrl(t) } }
+        val url = text?.let { UrlParser.extractUrl(it) }
         if (url == null) {
             toast(getString(R.string.toast_paste_empty))
             return
@@ -380,7 +404,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun suggestFromClipboard() {
         val text = readClipboard() ?: return
-        val url = extractTikTokUrl(text) ?: return
+        val url = UrlParser.extractUrl(text) ?: return
         if (url == lastClipboardSuggestion) return
         lastClipboardSuggestion = url
         binding.etUrl.setText(url)

@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Ket qua phan tich 1 link TikTok: ban ghi de luu SQLite + thoi luong video (de hien thi chip).
+ * Ket qua phan tich 1 link: ban ghi de luu SQLite + thoi luong video (de hien thi chip).
  */
 data class VideoInfo(
     val record: DownloadRecord,
@@ -64,7 +64,8 @@ object ApiClient {
             sourceUrl = url,
             downloadUrl = noWatermark,
             quality = if (v.hdPlayUrl != null) "HD" else "NO_WATERMARK",
-            fileSize = v.hdSize ?: v.size ?: 0
+            fileSize = v.hdSize ?: v.size ?: 0,
+            platform = VideoPlatform.TIKTOK
         )
         return VideoInfo(record, v.duration)
     }

@@ -65,4 +65,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+
+    // Unit test JVM (parser Douyin / URL) - chay trong CI
+    testImplementation(libs.junit)
 }
