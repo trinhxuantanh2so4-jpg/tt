@@ -17,10 +17,31 @@ App trình diễn **3 kỹ thuật chính**:
 
 | Màn hình | Chức năng |
 |----------|-----------|
-| **LoginActivity** | Đăng nhập / Đăng ký (Firebase Auth, tự dự phòng offline bằng SQLite nếu chưa cấu hình Firebase) |
-| **MainActivity** | Dán link TikTok → phân tích qua API → tải video không logo; hiển thị video thịnh hành từ API; **chọn nơi lưu file trước khi tải** (trình chọn tệp của hệ thống) |
-| **HistoryActivity** | Lịch sử tải từ SQLite: xem danh sách (SELECT), yêu thích (UPDATE), xóa 1 dòng / xóa hết (DELETE) |
-| **ProfileActivity** | Hồ sơ từ Firestore: xem tên, email, số video đã tải; đổi tên (ghi lên backend); đăng xuất |
+| **LoginActivity** | Đăng nhập / Đăng ký (Firebase Auth, tự dự phòng offline bằng SQLite nếu chưa cấu hình Firebase); validate ngay trên ô nhập, ghi nhớ email |
+| **MainActivity** | Tab **Tải video**: dán link (hoặc chia sẻ link từ TikTok sang app) → phân tích qua API → tải video không logo; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
+| **TrendingActivity** | Tab **Thịnh hành**: grid 2 cột video hot, kéo xuống để làm mới, nhấn để chuẩn bị tải |
+| **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận, mở lại video |
+| **ProfileActivity** | Tab **Hồ sơ**: profile Firestore + thống kê dung lượng từ SQLite, đổi tên, đăng xuất có xác nhận |
+
+Cả 4 màn hình chính dùng chung **BottomNavigationView** (Tải · Thịnh hành · Lịch sử · Hồ sơ) và **MaterialToolbar**.
+
+---
+
+# 🎨 GIAO DIỆN & TRẢI NGHIỆM (UI/UX)
+
+Kế hoạch chi tiết: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md)
+
+| Hạng mục | Nội dung đã làm |
+|----------|-----------------|
+| **Design system** | `colors.xml` (light) + `values-night/colors.xml` (dark), `dimens.xml`, `styles.xml`; toàn bộ chữ đưa vào `strings.xml` |
+| **Sáng / Tối** | `Theme.Material3.DayNight` + màu semantic (`surface`, `text_primary`, `accent`…) nên app tự đổi theo chế độ của máy; có splash screen |
+| **Điều hướng** | Bottom nav 4 tab + toolbar, chuyển tab không tạo lại màn hình (`FLAG_ACTIVITY_REORDER_TO_FRONT`) |
+| **Màn Tải video** | Icon **Dán** trong ô link, tự gợi ý link đang có trong clipboard, nhận `ACTION_SEND` (chia sẻ từ TikTok), card ảnh bo góc + chip chất lượng + thời lượng, dòng **Nơi lưu** bấm được, công tắc tự chọn nơi lưu, progress % + tốc độ, nút **Huỷ** |
+| **Trạng thái** | Skeleton/đang tải, **empty state** (hướng dẫn), **error state** + nút Thử lại cho cả 2 tab mạng |
+| **Thịnh hành** | Grid 2 cột tỉ lệ 9:16, gradient + thời lượng, `SwipeRefreshLayout`, `ListAdapter`/`DiffUtil` |
+| **Lịch sử** | Tìm kiếm theo tiêu đề/tác giả, FilterChip Tất cả/Yêu thích, swipe-to-delete + Snackbar **Hoàn tác**, dialog xác nhận xoá hết, mở video qua MediaStore/FileProvider |
+| **Hồ sơ / Đăng nhập** | Avatar tròn, 2 thẻ thống kê (số video · dung lượng), validate inline, progress nằm trong nút, dialog xác nhận đăng xuất |
+| **Accessibility** | Icon vector có `contentDescription`, touch target ≥ 48dp, màu `accent` đủ tương phản ở cả 2 chế độ |
 
 ---
 
@@ -293,43 +314,49 @@ Xem lịch sử build: https://github.com/trinhxuantanh2so4-jpg/tt/actions
 app/src/main/java/com/example/tt/
 ├── TTApp.kt                        # Application
 ├── LoginActivity.kt                # Đăng nhập/đăng ký (Kỹ thuật 3)
-├── MainActivity.kt                 # Tải video + trending (Kỹ thuật 2)
-├── HistoryActivity.kt              # Lịch sử SQLite (Kỹ thuật 1)
-├── ProfileActivity.kt              # Profile Firestore (Kỹ thuật 3)
+├── MainActivity.kt                 # Tab Tải video (Kỹ thuật 2) + chọn nơi lưu (SAF)
+├── TrendingActivity.kt             # Tab Thịnh hành: grid 2 cột + pull-to-refresh
+├── HistoryActivity.kt              # Tab Lịch sử SQLite (Kỹ thuật 1) + tìm kiếm/swipe
+├── ProfileActivity.kt              # Tab Hồ sơ Firestore (Kỹ thuật 3)
 ├── data/                           # KỸ THUẬT 1: SQLITE
 │   ├── DatabaseHelper.kt           #   3 bảng + index + transaction + CRUD
 │   ├── DownloadRecord.kt           #   model lịch sử
 │   └── UserRepository.kt           #   users cache + offline auth + session
 ├── network/                        # KỸ THUẬT 2: API
 │   ├── TikTokApi.kt                #   Retrofit interface (tikwm.com)
-│   ├── ApiClient.kt                #   singleton + chuẩn hoá kết quả
+│   ├── ApiClient.kt                #   singleton + chuẩn hoá kết quả (VideoInfo)
 │   └── TikTokModels.kt             #   response models (Gson)
 ├── firebase/                       # KỸ THUẬT 3: BACKEND
 │   ├── AuthRepository.kt           #   Auth: register/login/logout + fallback offline
 │   └── ProfileRepository.kt        #   Firestore: đọc/ghi profile + transaction counter
-├── download/VideoDownloader.kt     # OkHttp tải file + MediaStore / Uri người dùng chọn (có % tiến độ)
-└── ui/                             # RecyclerView adapters
-    ├── HistoryAdapter.kt
-    └── TrendingAdapter.kt
+├── download/VideoDownloader.kt     # OkHttp + MediaStore / Uri người dùng chọn, % + huỷ
+└── ui/                             # Adapter & tiện ích UI
+    ├── HistoryAdapter.kt           #   ListAdapter + DiffUtil
+    ├── TrendingAdapter.kt          #   ListAdapter grid 2 cột
+    ├── BottomNav.kt                #   bottom navigation dùng chung
+    └── Format.kt                   #   format bytes/tốc độ/thời gian + parse link
 ```
+
+Tài liệu: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md)
 
 # ⚙️ Công nghệ
 
-Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 · SQLiteOpenHelper · Firebase Auth + Cloud Firestore
+Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 (MaterialCardView, MaterialButton, MaterialSwitch, Chip, TextInputLayout, BottomNavigationView, ShapeableImageView) · SwipeRefreshLayout · SplashScreen · SQLiteOpenHelper · Firebase Auth + Cloud Firestore
 
 - **minSdk:** 26 (Android 8.0+) · **targetSdk:** 35 · AGP 8.7.3 · Kotlin 2.0.21 · Gradle 8.10.2
+- Giao diện: `Theme.Material3.DayNight` + `values-night` → tự đổi sáng/tối; toàn bộ màu/kích thước/chữ tập trung ở `colors.xml`, `dimens.xml`, `styles.xml`, `strings.xml`
 - Video lưu vào: Android 10+ → `Download/TikTok` (qua MediaStore, không cần quyền) · Android 8–9 → thư mục riêng của app
-- Hoặc **tự chọn nơi lưu**: bật ô *“Chọn nơi lưu khi tải”* → app mở trình chọn tệp của hệ thống (SAF) để bạn đặt tên file + chọn thư mục bất kỳ
+- Hoặc **tự chọn nơi lưu**: bật công tắc *“Tự chọn nơi lưu mỗi lần tải”* → app mở trình chọn tệp của hệ thống (SAF) để bạn đặt tên file + chọn thư mục bất kỳ
 - Quyền sử dụng: `INTERNET`, `ACCESS_NETWORK_STATE`, `WRITE_EXTERNAL_STORAGE` (chỉ Android ≤ 9)
 
 # 📂 Chọn nơi lưu file (Storage Access Framework)
 
-Trong card video có checkbox **“Chọn nơi lưu khi tải (mở trình chọn tệp)”** (mặc định bật, được ghi nhớ trong `SharedPreferences`):
+Trong card video có dòng **Nơi lưu** + công tắc **“Tự chọn nơi lưu mỗi lần tải”** (mặc định bật, được ghi nhớ trong `SharedPreferences`):
 
 | Trạng thái | Hành vi khi bấm **Tải video** |
 |-----------|-------------------------------|
 | ✅ Bật | Mở hộp thoại hệ thống `ACTION_CREATE_DOCUMENT` → người dùng tự đặt tên file + chọn thư mục (bộ nhớ trong, thẻ SD, Google Drive…). App ghi thẳng vào `Uri` trả về, **không cần quyền truy cập bộ nhớ** |
-| ⬜ Tắt | Lưu mặc định như cũ: Android 10+ → `Download/TikTok`, Android 8–9 → thư mục riêng của app |
+| ⬜ Tắt | Lưu mặc định: Android 10+ → `Download/TikTok`, Android 8–9 → thư mục riêng của app |
 
 Luồng code:
 

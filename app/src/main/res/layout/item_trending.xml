@@ -1,61 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.TT.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="#1E1E2A"
-    app:cardCornerRadius="12dp"
-    app:rippleColor="@color/tt_cyan">
+    android:layout_margin="@dimen/space_6"
+    app:cardCornerRadius="@dimen/radius_medium">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:id="@+id/imgCover"
-            android:layout_width="72dp"
-            android:layout_height="96dp"
-            android:contentDescription="Ảnh bìa"
-            android:scaleType="centerCrop" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="@string/nav_trending"
+            android:scaleType="centerCrop"
+            app:layout_constraintDimensionRatio="H,9:16"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
+        <View
+            android:id="@+id/scrim"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:background="@drawable/bg_scrim_bottom"
+            app:layout_constraintBottom_toBottomOf="@id/imgCover"
+            app:layout_constraintEnd_toEndOf="@id/imgCover"
+            app:layout_constraintStart_toStartOf="@id/imgCover" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/space_8"
+            android:background="@drawable/bg_duration_chip"
+            android:paddingStart="@dimen/space_6"
+            android:paddingTop="@dimen/space_2"
+            android:paddingEnd="@dimen/space_6"
+            android:paddingBottom="@dimen/space_2"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="@id/imgCover"
+            app:layout_constraintTop_toTopOf="@id/imgCover" />
+
+        <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginStart="@dimen/space_8"
+            android:layout_marginEnd="@dimen/space_8"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/tvAuthor"
+            app:layout_constraintEnd_toEndOf="@id/imgCover"
+            app:layout_constraintStart_toStartOf="@id/imgCover" />
 
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvAuthor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="#B3FFFFFF"
-                android:textSize="12sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Nhấn để chuẩn bị tải ↓"
-                android:textColor="@color/tt_cyan"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </LinearLayout>
+        <TextView
+            android:id="@+id/tvAuthor"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_8"
+            android:layout_marginEnd="@dimen/space_8"
+            android:layout_marginBottom="@dimen/space_8"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#CCFFFFFF"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/imgCover"
+            app:layout_constraintEnd_toEndOf="@id/imgCover"
+            app:layout_constraintStart_toStartOf="@id/imgCover" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

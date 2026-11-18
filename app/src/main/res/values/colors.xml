@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Màu thương hiệu TikTok -->
+    <!-- ================= BRAND ================= -->
     <color name="tt_cyan">#FF25F4EE</color>
     <color name="tt_red">#FFFE2C55</color>
     <color name="tt_black">#FF0B0B12</color>
-
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+
+    <!-- ================= SEMANTIC (LIGHT) ================= -->
+    <color name="surface">#FFF7F7FB</color>
+    <color name="surface_variant">#FFFFFFFF</color>
+    <color name="surface_elevated">#FFFFFFFF</color>
+    <color name="text_primary">#FF12121A</color>
+    <color name="text_secondary">#FF63636F</color>
+    <color name="divider">#1A000000</color>
+
+    <!-- Mau nhan (icon, link) - dam hon tt_cyan de du tuong phan tren nen sang -->
+    <color name="accent">#FF0E8F8A</color>
+    <color name="accent_soft">#1F25F4EE</color>
+    <color name="tt_red_soft">#1FFE2C55</color>
+    <color name="scrim">#66000000</color>
+    <color name="error">#FFB3261E</color>
+
     <color name="ic_launcher_background">#FF0B0B12</color>
 </resources>

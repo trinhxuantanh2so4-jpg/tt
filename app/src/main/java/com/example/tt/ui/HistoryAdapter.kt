@@ -2,52 +2,68 @@ package com.example.tt.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.tt.R
 import com.example.tt.data.DownloadRecord
 import com.example.tt.databinding.ItemHistoryBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
- * Adapter danh sach lich su tai (SQLite) - co nut yeu thich & xoa.
+ * Danh sach lich su tai (SQLite): mo video, yeu thich, xoa.
+ * Dung ListAdapter + DiffUtil de animation muot va ho tro hoan tac khi xoa.
  */
 class HistoryAdapter(
+    private val onOpen: (DownloadRecord) -> Unit,
     private val onToggleFavorite: (DownloadRecord) -> Unit,
     private val onDelete: (DownloadRecord) -> Unit
-) : RecyclerView.Adapter<HistoryAdapter.VH>() {
-
-    private val items = mutableListOf<DownloadRecord>()
-
-    fun submit(list: List<DownloadRecord>) {
-        items.clear()
-        items.addAll(list)
-        notifyDataSetChanged()
-    }
+) : ListAdapter<DownloadRecord, HistoryAdapter.VH>(DIFF) {
 
     class VH(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
         VH(ItemHistoryBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun getItemCount() = items.size
-
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val rec = items[position]
+        val rec = getItem(position)
         with(holder.binding) {
+            val context = root.context
             tvTitle.text = rec.title
-            tvAuthor.text = "👤 ${rec.author}"
-            val time = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(rec.createdAt))
-            tvSize.text = "${rec.quality} · ${rec.fileSize / 1024 / 1024} MB · $time"
+            tvAuthor.text = rec.author
+            tvMeta.text = "${rec.quality} · ${formatBytes(rec.fileSize)} · ${relativeTime(rec.createdAt)}"
+
             imgCover.load(rec.coverUrl) {
                 crossfade(true)
-                placeholder(R.drawable.ic_launcher_foreground)
+                placeholder(R.drawable.bg_media_placeholder)
+                error(R.drawable.bg_media_placeholder)
             }
-            btnFavorite.text = if (rec.favorite == 1) "❤️" else "🤍"
+
+            val isFavorite = rec.favorite == 1
+            btnFavorite.setImageResource(
+                if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+            )
+            btnFavorite.setColorFilter(
+                ContextCompat.getColor(
+                    context,
+                    if (isFavorite) R.color.tt_red else R.color.text_secondary
+                )
+            )
+
+            root.setOnClickListener { onOpen(rec) }
             btnFavorite.setOnClickListener { onToggleFavorite(rec) }
             btnDelete.setOnClickListener { onDelete(rec) }
+        }
+    }
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<DownloadRecord>() {
+            override fun areItemsTheSame(oldItem: DownloadRecord, newItem: DownloadRecord): Boolean =
+                oldItem.videoId == newItem.videoId
+
+            override fun areContentsTheSame(oldItem: DownloadRecord, newItem: DownloadRecord): Boolean =
+                oldItem == newItem
         }
     }
 }

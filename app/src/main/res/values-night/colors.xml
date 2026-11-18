@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ================= SEMANTIC (DARK) ================= -->
+    <color name="surface">#FF0B0B12</color>
+    <color name="surface_variant">#FF1A1A26</color>
+    <color name="surface_elevated">#FF23233A</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFB3FFFFFF</color>
+    <color name="divider">#1FFFFFFF</color>
+
+    <color name="accent">#FF25F4EE</color>
+    <color name="accent_soft">#1F25F4EE</color>
+    <color name="scrim">#66000000</color>
+</resources>

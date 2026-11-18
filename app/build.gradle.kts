@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.lifecycle)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.splashscreen)
 
     // Coroutines (ky thuat async + await cho Firebase Task)
     implementation(libs.coroutines.android)

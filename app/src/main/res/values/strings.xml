@@ -1,3 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TT Downloader</string>
+    <string name="app_tagline">Tải video TikTok không logo</string>
+
+    <!-- ===== Dieu huong ===== -->
+    <string name="nav_download">Tải video</string>
+    <string name="nav_trending">Thịnh hành</string>
+    <string name="nav_history">Lịch sử</string>
+    <string name="nav_profile">Hồ sơ</string>
+
+    <!-- ===== Man tai video ===== -->
+    <string name="main_subtitle">Dán link để tải video không logo</string>
+    <string name="hint_url">Dán link video TikTok…</string>
+    <string name="action_paste">Dán link từ clipboard</string>
+    <string name="action_analyze">Phân tích link</string>
+    <string name="action_download">Tải video</string>
+    <string name="action_cancel">Huỷ</string>
+    <string name="action_retry">Thử lại</string>
+    <string name="quality_hd">HD · Không logo</string>
+    <string name="quality_no_wm">Không logo</string>
+    <string name="save_to_label">Lưu tại</string>
+    <string name="save_default_path">Download/TikTok</string>
+    <string name="save_each_time">Bạn chọn mỗi lần tải</string>
+    <string name="switch_choose_location">Tự chọn nơi lưu mỗi lần tải</string>
+
+    <string name="empty_title">Chưa có video nào</string>
+    <string name="empty_desc">Dán link TikTok ở trên rồi bấm Phân tích link.\nBạn cũng có thể chia sẻ link từ TikTok sang app này.</string>
+    <string name="error_title">Không phân tích được link</string>
+    <string name="error_desc">Kiểm tra kết nối mạng rồi thử lại.</string>
+
+    <string name="loading_analyzing">Đang phân tích link…</string>
+    <string name="loading_downloading">Đang tải video…</string>
+    <string name="toast_paste_empty">Clipboard không có link TikTok</string>
+    <string name="toast_paste_done">Đã dán link từ clipboard</string>
+    <string name="toast_need_link">Vui lòng dán link từ tiktok.com</string>
+    <string name="toast_need_analyze">Phân tích link trước đã!</string>
+    <string name="toast_choose_canceled">Đã huỷ chọn nơi lưu</string>
+    <string name="toast_no_video">Không còn video để lưu, hãy phân tích lại link</string>
+    <string name="toast_saved_custom">Đã lưu vào vị trí bạn chọn</string>
+    <string name="toast_saved_default">Đã lưu vào Download/TikTok</string>
+    <string name="toast_download_canceled">Đã huỷ tải video</string>
+    <string name="toast_download_error">Lỗi tải: %1$s</string>
+    <string name="toast_analyze_error">Không phân tích được link</string>
+    <string name="toast_trending_error">Không tải được danh sách thịnh hành</string>
+    <string name="done_percent">Hoàn tất ✓</string>
+    <string name="failed_percent">Lỗi ✗</string>
+
+    <!-- ===== Man thinh hanh ===== -->
+    <string name="trending_title">Video thịnh hành</string>
+    <string name="trending_subtitle">Việt Nam</string>
+    <string name="trending_empty">Chưa có video thịnh hành</string>
+    <string name="trending_error">Không tải được danh sách thịnh hành</string>
+    <string name="trending_hint">Nhấn vào video để chuẩn bị tải</string>
+
+    <!-- ===== Man lich su ===== -->
+    <string name="history_title">Lịch sử tải</string>
+    <string name="history_empty_title">Chưa tải video nào</string>
+    <string name="history_empty_desc">Video bạn tải sẽ xuất hiện ở đây.</string>
+    <string name="history_search_hint">Tìm theo tiêu đề hoặc tác giả…</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_favorite">Yêu thích</string>
+    <string name="history_count">%1$d video · %2$d yêu thích</string>
+    <string name="history_swipe">Vuốt để xoá, nhấn để mở video</string>
+    <string name="action_clear_all">Xoá hết</string>
+    <string name="dialog_clear_title">Xoá toàn bộ lịch sử?</string>
+    <string name="dialog_clear_message">Thao tác này xoá %1$d dòng trong SQLite và không thể hoàn tác.</string>
+    <string name="dialog_clear_confirm">Xoá hết</string>
+    <string name="dialog_cancel">Huỷ</string>
+    <string name="toast_deleted_one">Đã xoá 1 video</string>
+    <string name="toast_deleted_all">Đã xoá toàn bộ lịch sử</string>
+    <string name="toast_undo">Hoàn tác</string>
+    <string name="toast_file_missing">File không còn trên máy (có thể đã bị xoá)</string>
+    <string name="toast_no_app_open">Không có app nào mở được video này</string>
+    <string name="favorite_on">Đã thêm vào yêu thích</string>
+    <string name="favorite_off">Đã bỏ yêu thích</string>
+
+    <!-- ===== Man ho so ===== -->
+    <string name="profile_title">Hồ sơ</string>
+    <string name="profile_section_stats">Thống kê</string>
+    <string name="profile_stat_videos">Video đã tải</string>
+    <string name="profile_stat_size">Dung lượng</string>
+    <string name="profile_edit_name">Đổi tên hiển thị</string>
+    <string name="hint_new_name">Tên mới</string>
+    <string name="action_save">Lưu thay đổi</string>
+    <string name="action_logout">Đăng xuất</string>
+    <string name="dialog_logout_title">Đăng xuất?</string>
+    <string name="dialog_logout_message">Bạn sẽ cần đăng nhập lại để tải video.</string>
+    <string name="mode_offline">Chế độ offline (SQLite)</string>
+    <string name="mode_firebase">Firebase Auth</string>
+    <string name="toast_saved_firestore">Đã lưu lên Firestore ✓</string>
+    <string name="toast_saved_offline">Đã lưu (offline)</string>
+    <string name="toast_need_name">Nhập tên mới</string>
+    <string name="toast_firestore_error">Lỗi Firestore: %1$s</string>
+
+    <!-- ===== Dang nhap ===== -->
+    <string name="login_title">Đăng nhập</string>
+    <string name="register_title">Tạo tài khoản</string>
+    <string name="hint_display_name">Tên hiển thị</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Mật khẩu</string>
+    <string name="action_login">Đăng nhập</string>
+    <string name="action_register">Đăng ký</string>
+    <string name="switch_to_register">Chưa có tài khoản? Đăng ký</string>
+    <string name="switch_to_login">Đã có tài khoản? Đăng nhập</string>
+    <string name="error_email_empty">Nhập email của bạn</string>
+    <string name="error_email_invalid">Email không hợp lệ</string>
+    <string name="error_password_empty">Nhập mật khẩu</string>
+    <string name="error_password_short">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="error_name_empty">Nhập tên hiển thị</string>
+    <string name="login_welcome">Xin chào %1$s!</string>
+    <string name="register_success">Tạo tài khoản thành công!</string>
+
+    <!-- ===== Chung ===== -->
+    <string name="back">Quay lại</string>
 </resources>

@@ -2,6 +2,8 @@ package com.example.tt.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.tt.R
@@ -9,42 +11,45 @@ import com.example.tt.databinding.ItemTrendingBinding
 import com.example.tt.network.TikTokVideo
 
 /**
- * Adapter hien thi danh sach video thinh hanh lay tu API (Ky thuat 2).
+ * Grid video thinh hanh (2 cot): anh 9:16, overlay tieu de + tac gia, thoi luong.
  */
 class TrendingAdapter(
     private val onClick: (TikTokVideo) -> Unit
-) : RecyclerView.Adapter<TrendingAdapter.VH>() {
-
-    private val items = mutableListOf<TikTokVideo>()
-
-    fun submit(list: List<TikTokVideo>) {
-        items.clear()
-        items.addAll(list)
-        notifyDataSetChanged()
-    }
+) : ListAdapter<TikTokVideo, TrendingAdapter.VH>(DIFF) {
 
     class VH(val binding: ItemTrendingBinding) : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val binding = ItemTrendingBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return VH(binding)
-    }
-
-    override fun getItemCount() = items.size
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
+        VH(ItemTrendingBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val v = items[position]
+        val video = getItem(position)
         with(holder.binding) {
-            tvTitle.text = v.title ?: "Video TikTok"
-            val authorName = v.author?.nickname ?: "Không rõ"
-            tvAuthor.text = "👤 $authorName"
-            imgCover.load(v.cover) {
+            tvTitle.text = video.title?.takeIf { it.isNotBlank() }
+                ?: root.context.getString(R.string.nav_trending)
+            tvAuthor.text = video.author?.nickname ?: video.author?.uniqueId ?: "TikTok"
+
+            val duration = formatDuration(video.duration)
+            tvDuration.text = duration
+            tvDuration.visibility =
+                if (duration.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+
+            imgCover.load(video.cover) {
                 crossfade(true)
-                placeholder(R.drawable.ic_launcher_foreground)
+                placeholder(R.drawable.bg_media_placeholder)
+                error(R.drawable.bg_media_placeholder)
             }
-            root.setOnClickListener { onClick(v) }
+            root.setOnClickListener { onClick(video) }
+        }
+    }
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<TikTokVideo>() {
+            override fun areItemsTheSame(oldItem: TikTokVideo, newItem: TikTokVideo): Boolean =
+                oldItem.id == newItem.id
+
+            override fun areContentsTheSame(oldItem: TikTokVideo, newItem: TikTokVideo): Boolean =
+                oldItem == newItem
         }
     }
 }

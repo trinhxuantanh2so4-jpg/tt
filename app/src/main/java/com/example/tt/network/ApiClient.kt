@@ -8,6 +8,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
+ * Ket qua phan tich 1 link TikTok: ban ghi de luu SQLite + thoi luong video (de hien thi chip).
+ */
+data class VideoInfo(
+    val record: DownloadRecord,
+    val duration: Long?
+)
+
+/**
  * Singleton Retrofit client.
  * Base URL: https://tikwm.com  (API mien phi, khong can key)
  */
@@ -34,10 +42,10 @@ object ApiClient {
     }
 
     /**
-     * Chuan hoa ket qua API -> DownloadRecord (chon link KHONG LOGO tot nhat).
+     * Chuan hoa ket qua API -> VideoInfo (chon link KHONG LOGO tot nhat).
      * @throws IllegalStateException neu link khong phai TikTok hoac API loi.
      */
-    suspend fun fetchVideoInfo(url: String): DownloadRecord {
+    suspend fun fetchVideoInfo(url: String): VideoInfo {
         if (!url.contains("tiktok.com", ignoreCase = true)) {
             throw IllegalStateException("Vui long dan link tu tiktok.com")
         }
@@ -48,7 +56,7 @@ object ApiClient {
         val v = res.data
         val noWatermark = v.hdPlayUrl ?: v.playUrl
             ?: throw IllegalStateException("Khong tim thay video (link rieng tu?)")
-        return DownloadRecord(
+        val record = DownloadRecord(
             videoId = v.id ?: url,
             title = v.title ?: "Video TikTok",
             author = v.author?.nickname ?: v.author?.uniqueId ?: "Khong ro",
@@ -58,5 +66,6 @@ object ApiClient {
             quality = if (v.hdPlayUrl != null) "HD" else "NO_WATERMARK",
             fileSize = v.hdSize ?: v.size ?: 0
         )
+        return VideoInfo(record, v.duration)
     }
 }

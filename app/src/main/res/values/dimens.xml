@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Khoang cach -->
+    <dimen name="space_2">2dp</dimen>
+    <dimen name="space_4">4dp</dimen>
+    <dimen name="space_6">6dp</dimen>
+    <dimen name="space_8">8dp</dimen>
+    <dimen name="space_10">10dp</dimen>
+    <dimen name="space_12">12dp</dimen>
+    <dimen name="space_14">14dp</dimen>
+    <dimen name="space_16">16dp</dimen>
+    <dimen name="space_20">20dp</dimen>
+    <dimen name="space_24">24dp</dimen>
+    <dimen name="space_32">32dp</dimen>
+
+    <!-- Bo goc -->
+    <dimen name="radius_small">10dp</dimen>
+    <dimen name="radius_medium">16dp</dimen>
+    <dimen name="radius_large">20dp</dimen>
+
+    <!-- Thanh phan -->
+    <dimen name="touch_target">48dp</dimen>
+    <dimen name="button_height">52dp</dimen>
+    <dimen name="cover_height">190dp</dimen>
+    <dimen name="avatar_size">96dp</dimen>
+    <dimen name="thumb_width">64dp</dimen>
+    <dimen name="thumb_height">88dp</dimen>
+</resources>

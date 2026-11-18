@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.TT.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="#1E1E2A"
-    app:cardCornerRadius="12dp">
+    android:layout_marginBottom="@dimen/space_10"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="@dimen/radius_medium">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp">
+        android:padding="@dimen/space_10">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgCover"
-            android:layout_width="64dp"
-            android:layout_height="84dp"
-            android:contentDescription="Ảnh bìa"
-            android:scaleType="centerCrop" />
+            android:layout_width="@dimen/thumb_width"
+            android:layout_height="@dimen/thumb_height"
+            android:contentDescription="@string/nav_history"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.TT.Rounded" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/space_12"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -34,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="@color/white"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -42,18 +45,18 @@
                 android:id="@+id/tvAuthor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="@dimen/space_2"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="#B3FFFFFF"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
             <TextView
-                android:id="@+id/tvSize"
+                android:id="@+id/tvMeta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="#80FFFFFF"
+                android:layout_marginTop="@dimen/space_4"
+                android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -63,21 +66,23 @@
             android:layout_gravity="center_vertical"
             android:orientation="vertical">
 
-            <Button
+            <ImageButton
                 android:id="@+id/btnFavorite"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:backgroundTint="#00000000"
-                android:text="🤍"
-                android:textSize="18sp" />
+                android:layout_width="@dimen/touch_target"
+                android:layout_height="@dimen/touch_target"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/filter_favorite"
+                android:src="@drawable/ic_favorite_border"
+                android:tint="@color/text_secondary" />
 
-            <Button
+            <ImageButton
                 android:id="@+id/btnDelete"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:backgroundTint="#00000000"
-                android:text="🗑"
-                android:textSize="16sp" />
+                android:layout_width="@dimen/touch_target"
+                android:layout_height="@dimen/touch_target"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_clear_all"
+                android:src="@drawable/ic_delete"
+                android:tint="@color/text_secondary" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

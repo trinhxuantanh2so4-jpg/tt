@@ -7,17 +7,21 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.InputStream
+import kotlin.coroutines.coroutineContext
 
 /**
  * Tai video bang OkHttp, luu vao may:
  *  - Android 10+ : MediaStore (Download/TikTok) - khong can quyen
  *  - Android 8-9 : app dir (khong can quyen)
  *  - Hoac ghi vao Uri do nguoi dung chon qua trinh chon tep (SAF - ACTION_CREATE_DOCUMENT)
+ *
+ * Ho tro HUY: vong lap copy kiem tra coroutine hien tai, huy Job -> dung tai ngay.
  */
 object VideoDownloader {
 
@@ -86,9 +90,9 @@ object VideoDownloader {
     }
 
     /** Goi API va tra InputStream cua video cho ham ghi dich. */
-    private fun fetch(
+    private suspend fun fetch(
         url: String,
-        sink: (InputStream, Long) -> String
+        sink: suspend (InputStream, Long) -> String
     ): String {
         val req = Request.Builder().url(url).build()
         client.newCall(req).execute().use { resp ->
@@ -102,7 +106,7 @@ object VideoDownloader {
     private fun safeName(fileName: String): String =
         fileName.replace(Regex("[^A-Za-z0-9._-]"), "_")
 
-    private fun copyWithProgress(
+    private suspend fun copyWithProgress(
         input: InputStream,
         out: java.io.OutputStream,
         total: Long,
@@ -112,6 +116,9 @@ object VideoDownloader {
         var done = 0L
         var lastPct = -1
         while (true) {
+            // Huy tai: nguoi dung bam "Huy" -> job bi cancel -> dung vong lap
+            coroutineContext.ensureActive()
+
             val r = input.read(buf)
             if (r == -1) break
             out.write(buf, 0, r)
