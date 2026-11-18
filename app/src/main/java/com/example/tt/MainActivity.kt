@@ -290,6 +290,16 @@ class MainActivity : AppCompatActivity() {
                 // KY THUAT 1: luu lich su vao SQLite (IO thread)
                 withContext(Dispatchers.IO) { db.insertDownload(rec.copy(filePath = path)) }
 
+                // Giu quyen doc file nguoi dung chon de tab Lich su mo lai duoc video
+                if (target != null) {
+                    runCatching {
+                        contentResolver.takePersistableUriPermission(
+                            target,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
+                    }
+                }
+
                 // KY THUAT 3: goi backend Firestore tang bo dem
                 val uid = withContext(Dispatchers.IO) { UserRepository(db).currentSessionUid() }
                 if (uid != null && !uid.startsWith("offline-")) {
