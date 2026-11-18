@@ -31,7 +31,21 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
+
+      # Ghi loi build ra annotation de xem duoc ma khong can quyen xem log
+      - name: Report build errors
+        if: failure()
+        run: |
+          grep -n -E "^e: |error:|Unresolved reference|FAILURE: Build|What went wrong|Could not resolve|Caused by|Execution failed|AAPT|Android resource" build.log \
+            | sed 's/\r//g' | cut -c1-900 | head -8 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+          echo "---- deps ----"
+          grep -n -E "^\\* What went wrong|^> " build.log | head -5 || true
+        continue-on-error: true
 
       - name: Upload APK to release
         uses: softprops/action-gh-release@v2
