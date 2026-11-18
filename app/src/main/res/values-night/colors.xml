@@ -5,7 +5,7 @@
     <color name="surface_variant">#FF1A1A26</color>
     <color name="surface_elevated">#FF23233A</color>
     <color name="text_primary">#FFFFFFFF</color>
-    <color name="text_secondary">#FFB3FFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color>
     <color name="divider">#1FFFFFFF</color>
 
     <color name="accent">#FF25F4EE</color>
