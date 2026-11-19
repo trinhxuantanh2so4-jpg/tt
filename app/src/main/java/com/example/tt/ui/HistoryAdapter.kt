@@ -33,7 +33,12 @@ class HistoryAdapter(
             val context = root.context
             tvTitle.text = rec.title
             tvAuthor.text = rec.author
-            tvMeta.text = "${rec.quality} · ${formatBytes(rec.fileSize)} · ${relativeTime(rec.createdAt)}"
+            val badges = buildList {
+                if (rec.subtitlePath.isNotEmpty()) add(context.getString(R.string.badge_vietsub))
+                if (rec.dubPath.isNotEmpty()) add(context.getString(R.string.badge_narration))
+            }
+            val badgeText = if (badges.isEmpty()) "" else " · " + badges.joinToString(" · ")
+            tvMeta.text = "${rec.quality} · ${formatBytes(rec.fileSize)} · ${relativeTime(rec.createdAt)}$badgeText"
 
             imgCover.load(rec.coverUrl) {
                 crossfade(true)

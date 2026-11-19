@@ -141,6 +141,11 @@
     <string name="action_open_dub">Nghe bản thuyết minh</string>
     <string name="narration_done">Đã tạo bản thuyết minh ✓</string>
     <string name="narration_progress_check_tts">Đang kiểm tra giọng đọc…</string>
+    <string name="badge_vietsub">Vietsub</string>
+    <string name="badge_narration">Thuyết minh</string>
+    <string name="menu_subtitle">Tạo / sửa phụ đề</string>
+    <string name="menu_delete_processed">Xoá bản xử lý (SRT + thuyết minh)</string>
+    <string name="toast_processed_deleted">Đã xoá bản xử lý</string>
     <string name="subtitle_hint_process">Tự động nhận dạng lời nói bằng Moonshine AI rồi dịch sang tiếng Việt bằng ML Kit.</string>
     <string name="action_generate_subtitle">Tạo phụ đề</string>
     <string name="action_save_srt">Lưu file .srt</string>

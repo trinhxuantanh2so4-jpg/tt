@@ -382,7 +382,7 @@ Tài liệu: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md) · [`docs/DOUYIN_VIETSUB
 
 # ⚙️ Công nghệ
 
-Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 (MaterialCardView, MaterialButton, MaterialSwitch, Chip, TextInputLayout, BottomNavigationView, ShapeableImageView) · SwipeRefreshLayout · SplashScreen · SQLiteOpenHelper · Firebase Auth + Cloud Firestore · **Moonshine AI** (`ai.moonshine:moonshine-voice:0.1.6` — ASR offline Tiny Streaming) · **ML Kit Translate** (`com.google.mlkit:translate:17.0.3`) · **Media3 ExoPlayer** (`androidx.media3:media3-exoplayer:1.6.1` + `media3-ui`)
+Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 (MaterialCardView, MaterialButton, MaterialSwitch, Chip, TextInputLayout, BottomNavigationView, ShapeableImageView) · SwipeRefreshLayout · SplashScreen · SQLiteOpenHelper · Firebase Auth + Cloud Firestore · **Moonshine AI** (`ai.moonshine:moonshine-voice:0.1.6` — ASR offline Tiny Streaming) · **ML Kit Translate** (`com.google.mlkit:translate:17.0.3`) · **Media3 ExoPlayer** (`androidx.media3:media3-exoplayer:1.6.1` + `media3-ui`) · **Media3 Transformer** (`androidx.media3:media3-transformer:1.6.1` — ghép track thuyết minh) · **TTS hệ thống** (TextToSpeech `vi-VN`)
 
 - **minSdk:** 26 (Android 8.0+) · **targetSdk:** 35 · AGP 8.7.3 · Kotlin 2.0.21 · Gradle 8.10.2
 - Giao diện: `Theme.Material3.DayNight` + `values-night` → tự đổi sáng/tối; toàn bộ màu/kích thước/chữ tập trung ở `colors.xml`, `dimens.xml`, `styles.xml`, `strings.xml`
@@ -463,8 +463,37 @@ Video (không logo) ──▶ AudioExtractor (MediaExtractor + MediaCodec -> PCM
 
 - `gradle/libs.versions.toml` + `app/build.gradle.kts`: thêm `moonshine-voice`, `mlkit-translate`, `media3-exoplayer`, `media3-ui`.
 - `MainActivity`: nút **Tạo phụ đề** trên card video sau khi tải xong.
-- `HistoryActivity` / `HistoryAdapter`: long-press → mở `SubtitleActivity`.
+- `HistoryActivity` / `HistoryAdapter`: nhấn giữ → menu phụ đề / bản thuyết minh / xoá bản xử lý; badge Vietsub & Thuyết minh.
 - `SubtitleActivity` + `PlayerActivity` mới; `AndroidManifest.xml` + `strings.xml` + layouts mới.
+- Phase D: DB v3 thêm `dub_path`, `voice`, `subtitle_lang`, `burn_path`; thêm `media3-transformer`.
+
+# 🎙️ Phase D — Thuyết minh on-device (TTS → WAV → MP4)
+
+Bật **Thuyết minh** ở tab Douyin (chỉ bật được khi đã bật **Phụ đề tiếng Việt**), bấm
+**Bắt đầu xử lý** sau khi tải xong. Pipeline:
+
+```
+SRT/cue tiếng Việt
+   │
+   ├─ SystemTtsEngine (TextToSpeech vi-VN, giọng Nữ/Nam · 1.0x/1.25x)
+   │     từng câu -> file WAV tạm -> FloatArray
+   │
+   ├─ NarrationTimeline: đặt từng clip tại startMs, trộn âm gốc (gain 20% hoặc tắt),
+   │     chuẩn hoá đỉnh ≤ 0.9, xuất PCM 24 kHz
+   │
+   ├─ WavIo: ghi filesDir/narration/{id}.wav
+   │
+   └─ NarrationMuxer (Media3 Transformer 1.6.1)
+         Composition(video gốc đã tắt tiếng + track WAV)
+         -> filesDir/narration/{id}.mp4
+```
+
+- Mặc định: **Nữ · 1.0x**, **giữ âm nền 20%**. Tuỳ chọn "Chỉ thuyết minh" sẽ bỏ hẳn tiếng gốc.
+- Máy thiếu giọng tiếng Việt: báo lỗi rõ ràng (không crash), vẫn dùng được vietsub.
+- `SubtitleActivity` có thêm nút **Tạo thuyết minh** và **Nghe bản thuyết minh**; tab Douyin mở
+  sẵn ở chế độ tự chạy sau khi bấm **Bắt đầu xử lý**.
+- Lịch sử hiện badge `Vietsub` / `Thuyết minh`; nhấn giữ card để mở menu *Tạo/sửa phụ đề*,
+  *Nghe bản thuyết minh*, *Xoá bản xử lý* (giữ nguyên video gốc).
 
 # 📝 Ghi chú pháp lý
 

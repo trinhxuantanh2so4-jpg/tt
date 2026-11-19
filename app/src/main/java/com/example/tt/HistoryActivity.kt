@@ -23,6 +23,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Tab "Lich su" - SQLite CRUD day du:
@@ -53,7 +54,7 @@ class HistoryActivity : AppCompatActivity() {
             onOpen = { openVideo(it) },
             onToggleFavorite = { toggleFavorite(it) },
             onDelete = { deleteWithUndo(it) },
-            onSubtitle = { openSubtitle(it) }
+            onSubtitle = { showProcessMenu(it) }
         )
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
         binding.rvHistory.adapter = adapter
@@ -209,13 +210,65 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
-    /** Nhan giu vao card de mo man hinh tao/chinh sua phu de. */
+    /** Nhan giu vao card: chon tao phu de / nghe thuyet minh / xoa ban xu ly. */
+    private fun showProcessMenu(rec: DownloadRecord) {
+        val hasDub = rec.dubPath.isNotEmpty()
+        val hasProcessed = rec.subtitlePath.isNotEmpty() || hasDub
+        val items = mutableListOf(getString(R.string.menu_subtitle))
+        if (hasDub) items.add(getString(R.string.action_open_dub))
+        if (hasProcessed) items.add(getString(R.string.menu_delete_processed))
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(rec.title)
+            .setItems(items.toTypedArray()) { _, which ->
+                when (which) {
+                    0 -> openSubtitle(rec)
+                    1 -> if (hasDub) openDub(rec) else deleteProcessed(rec)
+                    2 -> deleteProcessed(rec)
+                }
+            }
+            .show()
+    }
+
     private fun openSubtitle(rec: DownloadRecord) {
         if (rec.filePath.isEmpty()) {
             toast(getString(R.string.toast_file_missing))
             return
         }
         startActivity(SubtitleActivity.createIntent(this, rec.id, rec.platform.id))
+    }
+
+    /** Mo ban MP4 da long tieng thuyet minh. */
+    private fun openDub(rec: DownloadRecord) {
+        val uri = runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull()
+        if (uri == null) {
+            toast(getString(R.string.toast_file_missing))
+            return
+        }
+        startActivity(
+            Intent(this, PlayerActivity::class.java).apply {
+                putExtra(PlayerActivity.EXTRA_RECORD_ID, rec.id)
+                putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
+                putExtra(
+                    PlayerActivity.EXTRA_TITLE,
+                    "${rec.title} · ${getString(R.string.badge_narration)}"
+                )
+            }
+        )
+    }
+
+    /** Xoa file .srt + MP4 thuyet minh, giu nguyen video goc. */
+    private fun deleteProcessed(rec: DownloadRecord) {
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { File(rec.subtitlePath).delete() }
+                runCatching { File(rec.dubPath).delete() }
+                db.updateSubtitle(rec.id, "", "", rec.language)
+                db.updateDub(rec.id, "", "", "")
+            }
+            toast(getString(R.string.toast_processed_deleted))
+            reload()
+        }
     }
 
     private fun toast(message: String) =

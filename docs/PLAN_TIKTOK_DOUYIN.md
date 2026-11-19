@@ -6,6 +6,17 @@
 > Trạng thái nền: Phase A (Douyin) + Phase B/C (ASR → dịch → `.srt` → player) đã có code,
 > đang chờ CI xanh.
 
+## Trạng thái triển khai (cập nhật)
+
+| Phase | Trạng thái |
+|-------|-----------|
+| 0. Nền & CI, tách layout + `BaseDownloadActivity`, bottom nav 4 mục | ✅ xong (CI xanh `efdf4e6`) |
+| 1. Tab TikTok chỉ nhận TikTok, chặn link Douyin + chuyển tab | ✅ xong |
+| 2. Tab Douyin + tuỳ chọn vietsub/thuyết minh | ✅ xong |
+| 3. Thuyết minh: TTS hệ thống → WAV → Media3 Transformer, DB v3 | ✅ xong (CI xanh `086ea0e`) |
+| 4. Lịch sử: badge Vietsub/Thuyết minh, menu mở bản lồng tiếng/xoá bản xử lý | ✅ xong |
+| 5. `abiFilters`, README, strings, unit test | ✅ xong |
+
 ---
 
 ## 1. Mục tiêu người dùng thấy
