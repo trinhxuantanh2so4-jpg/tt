@@ -24,7 +24,10 @@ class SubtitleProcessor(private val context: Context) {
         sourceLanguage: String,
         onProgress: (Progress) -> Unit
     ): String {
-        val report: (Progress) -> Unit = { progress -> withContext(Dispatchers.Main) { onProgress(progress) } }
+        // onProgress co the duoc goi tu thread IO (vd. callback tai model),
+        // nen luon day ve main thread truoc khi cap nhat UI.
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        val report: (Progress) -> Unit = { progress -> mainHandler.post { onProgress(progress) } }
 
         report(Progress("Đang mở file video…", 5))
         val uri: Uri = withContext(Dispatchers.IO) {

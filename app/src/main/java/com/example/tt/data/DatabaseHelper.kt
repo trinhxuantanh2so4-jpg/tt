@@ -163,11 +163,11 @@ class DatabaseHelper(context: Context) :
     /** SELECT chi muc yeu thich */
     fun getFavorites(): List<DownloadRecord> = queryDownloads("$C_FAVORITE = 1")
 
-    private fun queryDownloads(where: String?): List<DownloadRecord> {
+    private fun queryDownloads(where: String?, args: Array<String>? = null): List<DownloadRecord> {
         val list = mutableListOf<DownloadRecord>()
         readableDatabase.use { db ->
             db.query(
-                T_DOWNLOADS, null, where, null, null, null,
+                T_DOWNLOADS, null, where, args, null, null,
                 "$C_CREATED_AT DESC"
             ).use { c ->
                 while (c.moveToNext()) {

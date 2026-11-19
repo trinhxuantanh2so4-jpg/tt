@@ -102,14 +102,13 @@ class SubtitleActivity : AppCompatActivity() {
     }
 
     private fun setupCuesRecycler() {
-        binding.rvCues.layoutManager = LinearLayoutManager(this).apply {
-            setItemViewCacheSize(0)
-        }
+        binding.rvCues.layoutManager = LinearLayoutManager(this)
+        binding.rvCues.setItemViewCacheSize(0)
         binding.rvCues.adapter = subtitleAdapter
     }
 
     private fun setupLanguageListeners() {
-        binding.spinnerSubtitleLanguage.setOnItemSelectedListener =
+        binding.spinnerSubtitleLanguage.setOnItemSelectedListener(
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
                     parent: android.widget.AdapterView<*>?,
@@ -122,11 +121,12 @@ class SubtitleActivity : AppCompatActivity() {
                         "Tiếng Việt" -> "vi"
                         else -> "zh"
                     }
-                    if (code.isNotEmpty()) selectedSourceLanguage = code
+                    selectedSourceLanguage = code
                 }
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             }
+        )
     }
 
     private var selectedSourceLanguage: String = "zh"
