@@ -25,7 +25,10 @@ class SubtitleAdapter(
         notifyDataSetChanged()
     }
 
-    class VH(val binding: ItemSubtitleCueBinding) : RecyclerView.ViewHolder(binding.root) {
+    class VH(
+        val binding: ItemSubtitleCueBinding,
+        private val onCueTextChanged: (Int, String) -> Unit
+    ) : RecyclerView.ViewHolder(binding.root) {
         private var watcher: TextWatcher? = null
 
         fun bind(cue: SubtitleCue, position: Int) {
@@ -45,7 +48,10 @@ class SubtitleAdapter(
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
                 override fun afterTextChanged(s: Editable?) {
                     if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                        onTextChanged(bindingAdapterPosition, s?.toString().orEmpty())
+                        onCueTextChanged(
+                            bindingAdapterPosition,
+                            s?.toString().orEmpty()
+                        )
                     }
                 }
             }
@@ -54,7 +60,10 @@ class SubtitleAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
-        VH(ItemSubtitleCueBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        VH(
+            ItemSubtitleCueBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            onTextChanged
+        )
 
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(items[position], position)
 
