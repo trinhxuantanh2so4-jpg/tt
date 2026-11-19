@@ -102,6 +102,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnRetry.setOnClickListener { analyze() }
         binding.btnDownload.setOnClickListener { onDownloadClick() }
         binding.btnCancel.setOnClickListener { downloadJob?.cancel() }
+        binding.btnSubtitle.setOnClickListener { openSubtitle() }
 
         // Dong "Luu tai" bam de bat/tat che do chon noi luu
         binding.rowSaveTo.setOnClickListener { binding.swChooseLocation.toggle() }
@@ -205,6 +206,7 @@ class MainActivity : AppCompatActivity() {
         binding.layoutEmpty.visibility = View.GONE
         binding.layoutError.visibility = View.GONE
         binding.cardVideo.visibility = View.VISIBLE
+        binding.btnSubtitle.visibility = View.VISIBLE
 
         binding.tvTitle.text = rec.title
         binding.tvAuthor.text = rec.author
@@ -380,6 +382,21 @@ class MainActivity : AppCompatActivity() {
         } else {
             getString(R.string.save_default_path)
         }
+    }
+
+    // ---------------- MO MAN HINH PHU DE (Phase B+C) ----------------
+    private fun openSubtitle() {
+        val rec = current ?: run {
+            toast(getString(R.string.toast_need_analyze))
+            return
+        }
+        if (rec.id <= 0L) {
+            toast(getString(R.string.toast_need_analyze))
+            return
+        }
+        startActivity(
+            SubtitleActivity.createIntent(this, rec.id, rec.platform.id)
+        )
     }
 
     // ---------------- CLIPBOARD ----------------

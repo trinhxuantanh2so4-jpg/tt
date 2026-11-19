@@ -12,6 +12,7 @@ App trình diễn **3 kỹ thuật chính**:
 | 1 | **SQLite** | Lịch sử tải video, cache profile, phiên đăng nhập, tài khoản offline dự phòng — CRUD đầy đủ (3 bảng, index, transaction) |
 | 2 | **Gọi API mạng** | Retrofit + OkHttp gọi API miễn phí `tikwm.com` cho TikTok; bộ parse `iesdouyin.com` (OkHttp + Gson) cho Douyin + danh sách video thịnh hành |
 | 3 | **Firebase backend** | Đăng ký / Đăng nhập (Firebase Auth) + lưu & đọc profile người dùng (Cloud Firestore) — app gọi tới backend mình tự tạo trên Firebase Console |
+| 4 | **ASR + Vietsub + Dịch** | **Moonshine AI** (offline, `ai.moonshine:moonshine-voice:0.1.6`) nhận dạng lời nói → **ML Kit Translate** (17.0.3, on-device) dịch sang tiếng Việt → ghi file **.srt**; xem lại/sửa từng câu và phát video kèm phụ đề bằng **Media3 ExoPlayer** |
 
 ## Màn hình
 
@@ -22,6 +23,8 @@ App trình diễn **3 kỹ thuật chính**:
 | **TrendingActivity** | Tab **Thịnh hành**: grid 2 cột video hot, kéo xuống để làm mới, nhấn để chuẩn bị tải |
 | **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận, mở lại video |
 | **ProfileActivity** | Tab **Hồ sơ**: profile Firestore + thống kê dung lượng từ SQLite, đổi tên, đăng xuất có xác nhận |
+| **SubtitleActivity** | Tab phụ **Tạo phụ đề**: chọn ngôn ngữ video (auto theo nền tảng), chạy pipeline ASR + dịch, sửa từng câu phụ đề tiếng Việt, lưu file `.srt`, mở video có phụ đề |
+| **PlayerActivity** | Tab phụ **Xem video có phụ đề**: ExoPlayer + subtitle track SRT (qua MediaItem.SubtitleConfiguration) |
 
 Cả 4 màn hình chính dùng chung **BottomNavigationView** (Tải · Thịnh hành · Lịch sử · Hồ sơ) và **MaterialToolbar**.
 
@@ -347,6 +350,15 @@ app/src/main/java/com/example/tt/
 ├── douyin/                         # TẢI DOUYIN KHÔNG LOGO
 │   ├── DouyinResolver.kt           #   OkHttp + UA mobile + redirect + fallback API
 │   └── DouyinParser.kt             #   parse window._ROUTER_DATA (Gson thuần)
+├── subtitle/                        # PHASE B+C: TAO PHU DE + DICH + PLAY
+│   ├── AudioExtractor.kt           # MediaExtractor + MediaCodec -> PCM float mono 16kHz
+│   ├── AsrEngine.kt                # Moonshine AI offline (MicTranscriber + transcribeWithoutStreaming)
+│   ├── Translator.kt               # ML Kit Translate on-device -> "vi"
+│   ├── SubtitleRepository.kt      # luu file .srt vao filesDir/subtitles
+│   ├── SubtitleProcessor.kt       # pipeline audio -> ASR -> dich -> SRT (+ progress)
+│   ├── SubtitleCue.kt              # model 1 cue (startMs/endMs/source/text)
+│   ├── CueBuilder.kt               # gop raw lines + translations -> cue list
+│   └── SrtWriter.kt                # ghi/doc file .srt (UTF-8)
 ├── firebase/                       # KỸ THUẬT 3: BACKEND
 │   ├── AuthRepository.kt           #   Auth: register/login/logout + fallback offline
 │   └── ProfileRepository.kt        #   Firestore: đọc/ghi profile + transaction counter
@@ -358,13 +370,13 @@ app/src/main/java/com/example/tt/
     └── Format.kt                   #   format bytes/tốc độ/thời gian (parse link ở network/UrlParser.kt)
 ```
 
-Unit test JVM: `app/src/test/java/com/example/tt/` (`UrlParserTest`, `DouyinParserTest`), chạy trong CI bằng `gradle testDebugUnitTest`.
+Unit test JVM: `app/src/test/java/com/example/tt/` (`UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`), chạy trong CI bằng `gradle testDebugUnitTest`.
 
 Tài liệu: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md) · [`docs/DOUYIN_VIETSUB_PLAN.md`](docs/DOUYIN_VIETSUB_PLAN.md)
 
 # ⚙️ Công nghệ
 
-Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 (MaterialCardView, MaterialButton, MaterialSwitch, Chip, TextInputLayout, BottomNavigationView, ShapeableImageView) · SwipeRefreshLayout · SplashScreen · SQLiteOpenHelper · Firebase Auth + Cloud Firestore
+Kotlin · ViewBinding · Coroutines · Retrofit + OkHttp + Gson · Coil (tải ảnh) · Material 3 (MaterialCardView, MaterialButton, MaterialSwitch, Chip, TextInputLayout, BottomNavigationView, ShapeableImageView) · SwipeRefreshLayout · SplashScreen · SQLiteOpenHelper · Firebase Auth + Cloud Firestore · **Moonshine AI** (`ai.moonshine:moonshine-voice:0.1.6` — ASR offline Tiny Streaming) · **ML Kit Translate** (`com.google.mlkit:translate:17.0.3`) · **Media3 ExoPlayer** (`androidx.media3:media3-exoplayer:1.6.1` + `media3-ui`)
 
 - **minSdk:** 26 (Android 8.0+) · **targetSdk:** 35 · AGP 8.7.3 · Kotlin 2.0.21 · Gradle 8.10.2
 - Giao diện: `Theme.Material3.DayNight` + `values-night` → tự đổi sáng/tối; toàn bộ màu/kích thước/chữ tập trung ở `colors.xml`, `dimens.xml`, `styles.xml`, `strings.xml`
@@ -395,6 +407,58 @@ MainActivity.btnDownload
 - Nếu người dùng bấm **Back** (huỷ) → không tải, chỉ hiện thông báo.
 - Nếu tải lỗi giữa chừng → file rỗng vừa tạo được xoá tự động (`contentResolver.delete`).
 - Hàm `download()` cũ vẫn giữ nguyên làm chế độ lưu nhanh khi tắt checkbox.
+
+# 🤖 Phase B + C — Tự tạo phụ đề tiếng Việt (Moonshine AI + ML Kit Translate)
+
+Ý tưởng: sau khi tải video không logo, app tự chạy **luồng ASR → Dịch → SRT** để có phụ đề + thuyết minh tiếng Việt.
+
+## Pipeline
+
+```
+Video (không logo) ──▶ AudioExtractor (MediaExtractor + MediaCodec -> PCM float mono 16kHz)
+                          │
+                          ▼
+                 AsrEngine (Moonshine AI, offline, Tiny Streaming, "zh" cho Douyin / "en" cho TikTok)
+                          │
+                          ▼
+              Translator (ML Kit Translate on-device, "vi")
+                          │
+                          ▼
+              CueBuilder + SrtWriter -> file .srt (filesDir/subtitles/{id}.srt)
+                          │
+                          ▼
+                 SubtitleActivity (sửa từng câu) -> PlayerActivity (ExoPlayer + subtitle track SRT)
+```
+
+## Chi tiết kỹ thuật
+
+| Thành phần | File | Ghi chú |
+|-----------|------|---------|
+| **Audio extraction** | `subtitle/AudioExtractor.kt` | `MediaExtractor` + `MediaCodec` decoder, mono PCM float 16 kHz; timeline theo `presentationTimeUs` + chèn đoạn im nếu cần |
+| **ASR** | `subtitle/AsrEngine.kt` | `MicTranscriber` (extends `Transcriber`) + `transcribeWithoutStreaming(float[], int)` -> `Transcript.lines` (startTime/duration theo giây); model `MOONSHINE_MODEL_ARCH_TINY_STREAMING`; option `max_tokens_per_second=13.0` cho tiếng Trung |
+| **Dịch** | `subtitle/Translator.kt` | `Translation.getClient(...)` + `downloadModelIfNeeded().await()` (coroutines) -> fallback giữ câu gốc nếu ML Kit lỗi |
+| **SRT** | `subtitle/CueBuilder.kt`, `subtitle/SrtWriter.kt`, `subtitle/SubtitleCue.kt` | Build cue từ transcript + bản dịch; format SRT `HH:MM:SS,mmm`; hỗ trợ parse lại file đã sửa |
+| **Storage** | `subtitle/SubtitleRepository.kt` | File `.srt` trong `filesDir/subtitles/{recordId}.srt` (share via FileProvider) |
+| **Pipeline** | `subtitle/SubtitleProcessor.kt` | 4 bước chính (audio -> ASR -> dịch -> SRT) + `ensureActive()` hủy giữa chung |
+
+## Database (migration v2)
+
+- `downloads` thêm cột: `platform`, `language`, `subtitle_path`, `process_status` (giữ nguyên dữ liệu cũ ở migration).
+- `DownloadRecord` giờ lưu cả `platform` lẫn `language` + đường dẫn `.srt`.
+
+## Model Moonshine
+
+- Thư viện: `ai.moonshine:moonshine-voice:0.1.6` (`moonshine-voice`).
+- Model mặc định cho STT: **Tiny Streaming** (`MOONSHINE_MODEL_ARCH_TINY_STREAMING`), ngôn ngữ `zh` (Douyin) / `en` (TikTok).
+- Model ~40–80 MB (tải lần đầu qua `ModelCache`, cache trên máy).
+- Cả app dùng **2 engine**: TTS hệ thống (mặc định) + TTS Moonshine (tuỳ chọn) — burn-in để sau MVP.
+
+## Thay đổi quan trọng so với Phase A
+
+- `gradle/libs.versions.toml` + `app/build.gradle.kts`: thêm `moonshine-voice`, `mlkit-translate`, `media3-exoplayer`, `media3-ui`.
+- `MainActivity`: nút **Tạo phụ đề** trên card video sau khi tải xong.
+- `HistoryActivity` / `HistoryAdapter`: long-press → mở `SubtitleActivity`.
+- `SubtitleActivity` + `PlayerActivity` mới; `AndroidManifest.xml` + `strings.xml` + layouts mới.
 
 # 📝 Ghi chú pháp lý
 

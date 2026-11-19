@@ -18,7 +18,9 @@ data class DownloadRecord(
     val fileSize: Long,         // bytes
     val favorite: Int = 0,      // 0/1
     val createdAt: Long = System.currentTimeMillis(),
-    // Phase A: chỉ dùng trong bộ nhớ để hiện chip + đặt tên file.
-    // Cột này sẽ được lưu vào SQLite ở migration v2 (Phase B).
-    val platform: VideoPlatform = VideoPlatform.TIKTOK
+    // Phase B: lưu xuống SQLite để tab Lịch sử biết nguồn và phụ đề.
+    val platform: VideoPlatform = VideoPlatform.TIKTOK,
+    val language: String = "",       // mã nguồn đã dùng khi nhận dạng ("zh"/"en")
+    val subtitlePath: String = "",   // đường dẫn file .srt (nếu đã tạo)
+    val processStatus: String = ""   // "" | "done" | "error"
 )

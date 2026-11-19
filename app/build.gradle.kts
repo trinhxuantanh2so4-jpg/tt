@@ -66,6 +66,12 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
-    // Unit test JVM (parser Douyin / URL) - chay trong CI
+    // Phase B+C: ASR on-device + dich + phat lai co phu de
+    implementation(libs.moonshine.voice)
+    implementation(libs.mlkit.translate)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+
+    // Unit test JVM (parser Douyin / URL / SRT) - chay trong CI
     testImplementation(libs.junit)
 }

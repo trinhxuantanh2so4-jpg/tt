@@ -114,6 +114,34 @@
     <string name="login_welcome">Xin chào %1$s!</string>
     <string name="register_success">Tạo tài khoản thành công!</string>
 
+    <!-- ===== Phu de + dich + play video ===== -->
+    <string name="subtitle_section_title">Phụ đề tiếng Việt</string>
+    <string name="subtitle_hint_process">Tự động nhận dạng lời nói bằng Moonshine AI rồi dịch sang tiếng Việt bằng ML Kit.</string>
+    <string name="action_generate_subtitle">Tạo phụ đề</string>
+    <string name="action_save_srt">Lưu file .srt</string>
+    <string name="action_open_player">Xem video có phụ đề</string>
+    <string name="subtitle_language_source">Ngôn ngữ video</string>
+    <string name="subtitle_processing">Đang xử lý…</string>
+    <string name="subtitle_done">Hoàn tất tạo phụ đề ✓</string>
+    <string name="subtitle_error_empty">Video không có âm thanh hoặc không nhận dạng được lời nói.</string>
+    <string name="subtitle_progress_model">Đang tải model nhận dạng…</string>
+    <string name="subtitle_progress_asr">Đang nhận dạng giọng nói…</string>
+    <string name="subtitle_progress_translate">Đang dịch sang tiếng Việt…</string>
+    <string name="subtitle_cues_empty">Chưa có phụ đề. Hãy tạo phụ đề cho video này.</string>
+    <string name="toast_subtitle_missing">Không tìm thấy record video để tạo phụ đề.</string>
+    <string name="toast_subtitle_created">Đã tạo phụ đề tiếng Việt ✓</string>
+    <string name="toast_subtitle_error">Không thể tạo phụ đề: %1$s</string>
+    <string name="subtitle_edit_hint">Sửa câu phụ đề (tiếng Việt)…</string>
+    <string name="subtitle_source_hint">Lời gốc</string>
+    <string name="dialog_delete_srt_title">Xoá file phụ đề?</string>
+    <string name="dialog_delete_srt_message">File .srt của video này sẽ bị xoá. Bạn có chắc không?</string>
+
     <!-- ===== Chung ===== -->
     <string name="back">Quay lại</string>
+
+    <string-array name="asr_languages">
+        <item value="zh">Tiếng Trung</item>
+        <item value="en">Tiếng Anh</item>
+        <item value="vi">Tiếng Việt</item>
+    </string-array>
 </resources>

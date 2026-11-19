@@ -2,8 +2,10 @@ package com.example.tt.data
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.tt.network.VideoPlatform
 
 /**
  * KY THUAT 1 - SQLITE
@@ -17,7 +19,7 @@ class DatabaseHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "tt_downloader.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
 
         // ---- Bang downloads ----
         const val T_DOWNLOADS = "downloads"
@@ -33,6 +35,11 @@ class DatabaseHelper(context: Context) :
         const val C_FILE_SIZE = "file_size"
         const val C_FAVORITE = "favorite"
         const val C_CREATED_AT = "created_at"
+        // Phase B: phu de + nguon video
+        const val C_PLATFORM = "platform"
+        const val C_LANGUAGE = "language"
+        const val C_SUBTITLE_PATH = "subtitle_path"
+        const val C_PROCESS_STATUS = "process_status"
 
         // ---- Bang users (cache profile + offline auth) ----
         const val T_USERS = "users"
@@ -61,7 +68,11 @@ class DatabaseHelper(context: Context) :
                 $C_SOURCE_URL TEXT, $C_DL_URL TEXT, $C_QUALITY TEXT,
                 $C_FILE_PATH TEXT, $C_FILE_SIZE INTEGER DEFAULT 0,
                 $C_FAVORITE INTEGER DEFAULT 0,
-                $C_CREATED_AT INTEGER NOT NULL
+                $C_CREATED_AT INTEGER NOT NULL,
+                $C_PLATFORM TEXT DEFAULT 'tiktok',
+                $C_LANGUAGE TEXT DEFAULT '',
+                $C_SUBTITLE_PATH TEXT DEFAULT '',
+                $C_PROCESS_STATUS TEXT DEFAULT ''
             )
             """.trimIndent()
         )
@@ -93,9 +104,24 @@ class DatabaseHelper(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Mau nang cap sau nay (hien chua can)
         if (oldVersion < 2) {
-            // db.execSQL("ALTER TABLE $T_DOWNLOADS ADD COLUMN new_col TEXT")
+            // Giữ nguyên dữ liệu cũ, chỉ thêm cột cho Phase B.
+            addColumnIfMissing(db, C_PLATFORM, "TEXT DEFAULT 'tiktok'")
+            addColumnIfMissing(db, C_LANGUAGE, "TEXT DEFAULT ''")
+            addColumnIfMissing(db, C_SUBTITLE_PATH, "TEXT DEFAULT ''")
+            addColumnIfMissing(db, C_PROCESS_STATUS, "TEXT DEFAULT ''")
+        }
+    }
+
+    private fun addColumnIfMissing(db: SQLiteDatabase, column: String, definition: String) {
+        val columns = db.rawQuery("PRAGMA table_info($T_DOWNLOADS)", null).use { c ->
+            val idx = c.getColumnIndex("name")
+            val names = mutableListOf<String>()
+            while (c.moveToNext()) names.add(c.getString(idx) ?: "")
+            names
+        }
+        if (column !in columns) {
+            db.execSQL("ALTER TABLE $T_DOWNLOADS ADD COLUMN $column $definition")
         }
     }
 
@@ -115,6 +141,10 @@ class DatabaseHelper(context: Context) :
             put(C_FILE_SIZE, rec.fileSize)
             put(C_FAVORITE, rec.favorite)
             put(C_CREATED_AT, rec.createdAt)
+            put(C_PLATFORM, rec.platform.id)
+            put(C_LANGUAGE, rec.language)
+            put(C_SUBTITLE_PATH, rec.subtitlePath)
+            put(C_PROCESS_STATUS, rec.processStatus)
         }
         writableDatabase.use { db ->
             return db.insertWithOnConflict(
@@ -125,6 +155,10 @@ class DatabaseHelper(context: Context) :
 
     /** SELECT tat ca, moi nhat truoc */
     fun getAllDownloads(): List<DownloadRecord> = queryDownloads(null)
+
+    /** SELECT 1 dong theo id (dung cho man hinh phu de). */
+    fun getDownload(id: Long): DownloadRecord? =
+        queryDownloads("$C_ID = ?", arrayOf(id.toString())).firstOrNull()
 
     /** SELECT chi muc yeu thich */
     fun getFavorites(): List<DownloadRecord> = queryDownloads("$C_FAVORITE = 1")
@@ -150,7 +184,13 @@ class DatabaseHelper(context: Context) :
                             filePath = c.getString(c.getColumnIndexOrThrow(C_FILE_PATH)) ?: "",
                             fileSize = c.getLong(c.getColumnIndexOrThrow(C_FILE_SIZE)),
                             favorite = c.getInt(c.getColumnIndexOrThrow(C_FAVORITE)),
-                            createdAt = c.getLong(c.getColumnIndexOrThrow(C_CREATED_AT))
+                            createdAt = c.getLong(c.getColumnIndexOrThrow(C_CREATED_AT)),
+                            platform = runCatching {
+                                VideoPlatform.fromId(c.getString(c.getColumnIndexOrThrow(C_PLATFORM)))
+                            }.getOrDefault(VideoPlatform.TIKTOK),
+                            language = c.getStringOrEmpty(C_LANGUAGE),
+                            subtitlePath = c.getStringOrEmpty(C_SUBTITLE_PATH),
+                            processStatus = c.getStringOrEmpty(C_PROCESS_STATUS)
                         )
                     )
                 }
@@ -196,4 +236,19 @@ class DatabaseHelper(context: Context) :
             }
         }
     }
+
+    /** Cap nhat duong dan phu de va trang thai xu ly sau Phase B. */
+    fun updateSubtitle(id: Long, subtitlePath: String, status: String, language: String) {
+        val cv = ContentValues().apply {
+            put(C_SUBTITLE_PATH, subtitlePath)
+            put(C_PROCESS_STATUS, status)
+            put(C_LANGUAGE, language)
+        }
+        writableDatabase.use { db ->
+            db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(id.toString()))
+        }
+    }
+
+    private fun Cursor.getStringOrEmpty(column: String): String =
+        runCatching { getString(getColumnIndexOrThrow(column)) }.getOrDefault("") ?: ""
 }

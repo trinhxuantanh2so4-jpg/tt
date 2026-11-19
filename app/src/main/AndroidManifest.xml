@@ -57,6 +57,17 @@
             android:exported="false"
             android:launchMode="singleTop" />
 
+        <!-- Phase B+C: tao phu de + xem video co phu de -->
+        <activity
+            android:name=".SubtitleActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
         <!-- Mo lai video da tai bang ung dung khac (trinh phat video) -->
         <provider
             android:name="androidx.core.content.FileProvider"
