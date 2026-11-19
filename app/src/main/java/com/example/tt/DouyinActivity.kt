@@ -64,8 +64,14 @@ class DouyinActivity : BaseDownloadActivity() {
                 toast(getString(R.string.toast_need_download_first))
                 return@setOnClickListener
             }
-            // MVP: xu ly vietsub truoc; thuyet minh duoc noi o Phase 3.
-            openSubtitle(rec)
+            // MVP: vietsub truoc, sau do (neu bat) moi thuyet minh bang TTS.
+            openSubtitle(
+                rec,
+                withNarration = options.swNarration.isChecked,
+                voiceLabel = options.spinnerVoice.selectedItem?.toString().orEmpty(),
+                keepBackground = options.rbKeepBackground.isChecked,
+                autoRun = true
+            )
         }
 
         // Trang thai ban dau
@@ -81,7 +87,12 @@ class DouyinActivity : BaseDownloadActivity() {
     override fun onDownloadCompleted(record: DownloadRecord) {
         // Chi tu mo man phu de khi nguoi dung da bat vietsub.
         if (options.swVietsub.isChecked) {
-            openSubtitle(record)
+            openSubtitle(
+                record,
+                withNarration = options.swNarration.isChecked,
+                voiceLabel = options.spinnerVoice.selectedItem?.toString().orEmpty(),
+                keepBackground = options.rbKeepBackground.isChecked
+            )
         }
     }
 

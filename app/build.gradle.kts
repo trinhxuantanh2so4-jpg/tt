@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.mlkit.translate)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
+    implementation(libs.media3.transformer)
 
     // Unit test JVM (parser Douyin / URL / SRT) - chay trong CI
     testImplementation(libs.junit)

@@ -451,13 +451,27 @@ abstract class BaseDownloadActivity : AppCompatActivity() {
     }
 
     // ---------------- MO MAN HINH PHU DE (Phase B+C) ----------------
-    protected fun openSubtitle(rec: DownloadRecord) {
+    protected fun openSubtitle(
+        rec: DownloadRecord,
+        withNarration: Boolean = false,
+        voiceLabel: String = "",
+        keepBackground: Boolean = true,
+        autoRun: Boolean = false
+    ) {
         if (rec.id <= 0L) {
             toast(getString(R.string.toast_need_analyze))
             return
         }
         startActivity(
-            SubtitleActivity.createIntent(this, rec.id, rec.platform.id)
+            SubtitleActivity.createIntent(
+                this,
+                rec.id,
+                rec.platform.id,
+                withNarration = withNarration,
+                voiceLabel = voiceLabel,
+                keepBackground = keepBackground,
+                autoRun = autoRun
+            )
         )
     }
 

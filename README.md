@@ -19,14 +19,15 @@ App trình diễn **3 kỹ thuật chính**:
 | Màn hình | Chức năng |
 |----------|-----------|
 | **LoginActivity** | Đăng nhập / Đăng ký (Firebase Auth, tự dự phòng offline bằng SQLite nếu chưa cấu hình Firebase); validate ngay trên ô nhập, ghi nhớ email |
-| **MainActivity** | Tab **Tải video**: dán/chia sẻ link **TikTok hoặc Douyin** → tự nhận nền tảng → phân tích → tải video không logo; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
-| **TrendingActivity** | Tab **Thịnh hành**: grid 2 cột video hot, kéo xuống để làm mới, nhấn để chuẩn bị tải |
+| **MainActivity** | Tab **TikTok**: chỉ nhận link TikTok → gọi API tikwm.com → tải video không logo; link Douyin tự chuyển sang tab Douyin; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
+| **DouyinActivity** | Tab **Douyin**: tải video Douyin không logo (parse iesdouyin, không dùng dịch vụ trung gian) + tuỳ chọn **vietsub & thuyết minh** (Moonshine ASR → ML Kit dịch → .srt); link TikTok tự chuyển sang tab TikTok |
+| **TrendingActivity** | Màn **Thịnh hành**: grid 2 cột video hot TikTok, kéo xuống để làm mới, nhấn để chuẩn bị tải (mở từ icon 🔥 trên toolbar của tab TikTok/Douyin) |
 | **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận, mở lại video |
 | **ProfileActivity** | Tab **Hồ sơ**: profile Firestore + thống kê dung lượng từ SQLite, đổi tên, đăng xuất có xác nhận |
-| **SubtitleActivity** | Tab phụ **Tạo phụ đề**: chọn ngôn ngữ video (auto theo nền tảng), chạy pipeline ASR + dịch, sửa từng câu phụ đề tiếng Việt, lưu file `.srt`, mở video có phụ đề |
-| **PlayerActivity** | Tab phụ **Xem video có phụ đề**: ExoPlayer + subtitle track SRT (qua MediaItem.SubtitleConfiguration) |
+| **SubtitleActivity** | Màn phụ **Tạo phụ đề**: chọn ngôn ngữ video (auto theo nền tảng), chạy pipeline ASR + dịch, sửa từng câu phụ đề tiếng Việt, lưu file `.srt`, mở video có phụ đề |
+| **PlayerActivity** | Màn phụ **Xem video có phụ đề**: ExoPlayer + subtitle track SRT (qua MediaItem.SubtitleConfiguration) |
 
-Cả 4 màn hình chính dùng chung **BottomNavigationView** (Tải · Thịnh hành · Lịch sử · Hồ sơ) và **MaterialToolbar**.
+4 màn hình chính (TikTok · Douyin · Lịch sử · Hồ sơ) dùng chung **BottomNavigationView** và **MaterialToolbar**; màn **Thịnh hành** mở từ icon 🔥 trên toolbar và cũng có bottom nav để chuyển tab.
 
 ---
 
@@ -40,8 +41,8 @@ Kế hoạch tách 2 phần TikTok (API) / Douyin (vietsub + thuyết minh): [`d
 |----------|-----------------|
 | **Design system** | `colors.xml` (light) + `values-night/colors.xml` (dark), `dimens.xml`, `styles.xml`; toàn bộ chữ đưa vào `strings.xml` |
 | **Sáng / Tối** | `Theme.Material3.DayNight` + màu semantic (`surface`, `text_primary`, `accent`…) nên app tự đổi theo chế độ của máy; có splash screen |
-| **Điều hướng** | Bottom nav 4 tab + toolbar, chuyển tab không tạo lại màn hình (`FLAG_ACTIVITY_REORDER_TO_FRONT`) |
-| **Màn Tải video** | Icon **Dán** trong ô link, tự gợi ý link đang có trong clipboard, nhận `ACTION_SEND` (chia sẻ từ TikTok/Douyin), card ảnh bo góc + chip **nền tảng · chất lượng** + thời lượng, dòng **Nơi lưu** bấm được, công tắc tự chọn nơi lưu, progress % + tốc độ, nút **Huỷ** |
+| **Điều hướng** | Bottom nav 4 tab (TikTok · Douyin · Lịch sử · Hồ sơ) + toolbar; icon 🔥 mở Thịnh hành; chuyển tab không tạo lại màn hình (`FLAG_ACTIVITY_REORDER_TO_FRONT`) |
+| **Màn TikTok / Douyin** | Icon **Dán** trong ô link, tự gợi ý link đang có trong clipboard, nhận `ACTION_SEND` (chia sẻ từ TikTok/Douyin, tự chuyển đúng tab), card ảnh bo góc + chip **nền tảng · chất lượng** + thời lượng, dòng **Nơi lưu** bấm được, công tắc tự chọn nơi lưu, progress % + tốc độ, nút **Huỷ**; tab Douyin thêm tuỳ chọn vietsub/thuyết minh |
 | **Trạng thái** | Skeleton/đang tải, **empty state** (hướng dẫn), **error state** + nút Thử lại cho cả 2 tab mạng |
 | **Thịnh hành** | Grid 2 cột tỉ lệ 9:16, gradient + thời lượng, `SwipeRefreshLayout`, `ListAdapter`/`DiffUtil` |
 | **Lịch sử** | Tìm kiếm theo tiêu đề/tác giả, FilterChip Tất cả/Yêu thích, swipe-to-delete + Snackbar **Hoàn tác**, dialog xác nhận xoá hết, mở video qua MediaStore/FileProvider |
@@ -332,11 +333,15 @@ Xem lịch sử build: https://github.com/trinhxuantanh2so4-jpg/tt/actions
 ```
 app/src/main/java/com/example/tt/
 ├── TTApp.kt                        # Application
-├── LoginActivity.kt                # Đăng nhập/đăng ký (Kỹ thuật 3)
-├── MainActivity.kt                 # Tab Tải video (Kỹ thuật 2) + chọn nơi lưu (SAF)
-├── TrendingActivity.kt             # Tab Thịnh hành: grid 2 cột + pull-to-refresh
+├── BaseDownloadActivity.kt         # Logic dùng chung 2 tab tải (phân tích link, SAF, tiến độ, lịch sử)
+├── MainActivity.kt                 # Tab TikTok (Kỹ thuật 2) + chọn nơi lưu (SAF)
+├── DouyinActivity.kt               # Tab Douyin (tải không logo + vietsub/thuyết minh)
+├── TrendingActivity.kt             # Màn Thịnh hành: grid 2 cột + pull-to-refresh (mở từ toolbar)
 ├── HistoryActivity.kt              # Tab Lịch sử SQLite (Kỹ thuật 1) + tìm kiếm/swipe
 ├── ProfileActivity.kt              # Tab Hồ sơ Firestore (Kỹ thuật 3)
+├── LoginActivity.kt                # Đăng nhập/đăng ký (Kỹ thuật 3)
+├── SubtitleActivity.kt             # Màn phụ Tạo phụ đề (Phase B+C)
+├── PlayerActivity.kt               # Màn phụ Xem video có phụ đề (Phase B+C)
 ├── data/                           # KỸ THUẬT 1: SQLITE
 │   ├── DatabaseHelper.kt           #   3 bảng + index + transaction + CRUD
 │   ├── DownloadRecord.kt           #   model lịch sử
@@ -368,7 +373,7 @@ app/src/main/java/com/example/tt/
     ├── HistoryAdapter.kt           #   ListAdapter + DiffUtil
     ├── TrendingAdapter.kt          #   ListAdapter grid 2 cột
     ├── BottomNav.kt                #   bottom navigation dùng chung
-    └── Format.kt                   #   format bytes/tốc độ/thời gian (parse link ở network/UrlParser.kt)
+    └── Format.kt                   #   format bytes/tốc độ/thời gian
 ```
 
 Unit test JVM: `app/src/test/java/com/example/tt/` (`UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`), chạy trong CI bằng `gradle testDebugUnitTest`.

@@ -156,6 +156,26 @@
                     android:text="@string/action_open_player"
                     app:icon="@drawable/ic_play_arrow" />
             </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateNarration"
+                style="@style/Widget.TT.Button.Tonal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_8"
+                android:text="@string/action_create_narration"
+                android:visibility="gone"
+                app:icon="@drawable/ic_translate" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenDub"
+                style="@style/Widget.TT.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_8"
+                android:text="@string/action_open_dub"
+                android:visibility="gone"
+                app:icon="@drawable/ic_play_arrow" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

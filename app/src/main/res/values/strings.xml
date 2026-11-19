@@ -137,6 +137,10 @@
     <string name="background_narration_only">Chỉ thuyết minh</string>
     <string name="process_estimate">Xử lý sau khi tải xong, có thể mất vài chục giây.</string>
     <string name="action_start_processing">Bắt đầu xử lý</string>
+    <string name="action_create_narration">Tạo thuyết minh</string>
+    <string name="action_open_dub">Nghe bản thuyết minh</string>
+    <string name="narration_done">Đã tạo bản thuyết minh ✓</string>
+    <string name="narration_progress_check_tts">Đang kiểm tra giọng đọc…</string>
     <string name="subtitle_hint_process">Tự động nhận dạng lời nói bằng Moonshine AI rồi dịch sang tiếng Việt bằng ML Kit.</string>
     <string name="action_generate_subtitle">Tạo phụ đề</string>
     <string name="action_save_srt">Lưu file .srt</string>

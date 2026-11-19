@@ -19,7 +19,7 @@ class DatabaseHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "tt_downloader.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
         // ---- Bang downloads ----
         const val T_DOWNLOADS = "downloads"
@@ -40,6 +40,11 @@ class DatabaseHelper(context: Context) :
         const val C_LANGUAGE = "language"
         const val C_SUBTITLE_PATH = "subtitle_path"
         const val C_PROCESS_STATUS = "process_status"
+        // Phien ban 3: thuyet minh + tuy chon xu ly
+        const val C_DUB_PATH = "dub_path"
+        const val C_VOICE = "voice"
+        const val C_SUBTITLE_LANG = "subtitle_lang"
+        const val C_BURN_PATH = "burn_path"
 
         // ---- Bang users (cache profile + offline auth) ----
         const val T_USERS = "users"
@@ -72,7 +77,11 @@ class DatabaseHelper(context: Context) :
                 $C_PLATFORM TEXT DEFAULT 'tiktok',
                 $C_LANGUAGE TEXT DEFAULT '',
                 $C_SUBTITLE_PATH TEXT DEFAULT '',
-                $C_PROCESS_STATUS TEXT DEFAULT ''
+                $C_PROCESS_STATUS TEXT DEFAULT '',
+                $C_DUB_PATH TEXT DEFAULT '',
+                $C_VOICE TEXT DEFAULT '',
+                $C_SUBTITLE_LANG TEXT DEFAULT '',
+                $C_BURN_PATH TEXT DEFAULT ''
             )
             """.trimIndent()
         )
@@ -111,6 +120,13 @@ class DatabaseHelper(context: Context) :
             addColumnIfMissing(db, C_SUBTITLE_PATH, "TEXT DEFAULT ''")
             addColumnIfMissing(db, C_PROCESS_STATUS, "TEXT DEFAULT ''")
         }
+        if (oldVersion < 3) {
+            // Phase D: track thuyet minh + lua chon giong / ngon ngu
+            addColumnIfMissing(db, C_DUB_PATH, "TEXT DEFAULT ''")
+            addColumnIfMissing(db, C_VOICE, "TEXT DEFAULT ''")
+            addColumnIfMissing(db, C_SUBTITLE_LANG, "TEXT DEFAULT ''")
+            addColumnIfMissing(db, C_BURN_PATH, "TEXT DEFAULT ''")
+        }
     }
 
     private fun addColumnIfMissing(db: SQLiteDatabase, column: String, definition: String) {
@@ -145,6 +161,10 @@ class DatabaseHelper(context: Context) :
             put(C_LANGUAGE, rec.language)
             put(C_SUBTITLE_PATH, rec.subtitlePath)
             put(C_PROCESS_STATUS, rec.processStatus)
+            put(C_DUB_PATH, rec.dubPath)
+            put(C_VOICE, rec.voice)
+            put(C_SUBTITLE_LANG, rec.subtitleLang)
+            put(C_BURN_PATH, rec.burnPath)
         }
         writableDatabase.use { db ->
             return db.insertWithOnConflict(
@@ -190,7 +210,11 @@ class DatabaseHelper(context: Context) :
                             }.getOrDefault(VideoPlatform.TIKTOK),
                             language = c.getStringOrEmpty(C_LANGUAGE),
                             subtitlePath = c.getStringOrEmpty(C_SUBTITLE_PATH),
-                            processStatus = c.getStringOrEmpty(C_PROCESS_STATUS)
+                            processStatus = c.getStringOrEmpty(C_PROCESS_STATUS),
+                            dubPath = c.getStringOrEmpty(C_DUB_PATH),
+                            voice = c.getStringOrEmpty(C_VOICE),
+                            subtitleLang = c.getStringOrEmpty(C_SUBTITLE_LANG),
+                            burnPath = c.getStringOrEmpty(C_BURN_PATH)
                         )
                     )
                 }
@@ -243,6 +267,18 @@ class DatabaseHelper(context: Context) :
             put(C_SUBTITLE_PATH, subtitlePath)
             put(C_PROCESS_STATUS, status)
             put(C_LANGUAGE, language)
+        }
+        writableDatabase.use { db ->
+            db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(id.toString()))
+        }
+    }
+
+    /** Phase D: luu ban MP4 thuyet minh + giong da dung. */
+    fun updateDub(id: Long, dubPath: String, voice: String, status: String) {
+        val cv = ContentValues().apply {
+            put(C_DUB_PATH, dubPath)
+            put(C_VOICE, voice)
+            put(C_PROCESS_STATUS, status)
         }
         writableDatabase.use { db ->
             db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(id.toString()))

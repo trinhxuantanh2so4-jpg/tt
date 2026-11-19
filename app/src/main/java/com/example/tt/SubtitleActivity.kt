@@ -15,12 +15,15 @@ import com.example.tt.data.DownloadRecord
 import com.example.tt.databinding.ActivitySubtitleBinding
 import com.example.tt.network.VideoPlatform
 import com.example.tt.subtitle.CueBuilder
+import com.example.tt.subtitle.NarrationProcessor
 import com.example.tt.subtitle.SubtitleCue
 import com.example.tt.subtitle.SubtitleProcessor
 import com.example.tt.subtitle.SrtWriter
 import com.example.tt.subtitle.SubtitleRepository
+import com.example.tt.subtitle.TtsEngine
 import com.example.tt.ui.MediaUri
 import com.example.tt.ui.SubtitleAdapter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,12 +39,28 @@ class SubtitleActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_RECORD_ID = "extra_record_id"
         const val EXTRA_PLATFORM = "extra_platform"
+        const val EXTRA_WITH_NARRATION = "extra_with_narration"
+        const val EXTRA_VOICE_LABEL = "extra_voice_label"
+        const val EXTRA_KEEP_BACKGROUND = "extra_keep_background"
+        const val EXTRA_AUTO_RUN = "extra_auto_run"
         const val PREFS_KEY_CURRENT_SUBTITLE_RECORD = "current_subtitle_record_id"
 
-        fun createIntent(context: Context, recordId: Long, platformId: String): Intent =
+        fun createIntent(
+            context: Context,
+            recordId: Long,
+            platformId: String,
+            withNarration: Boolean = false,
+            voiceLabel: String = "",
+            keepBackground: Boolean = true,
+            autoRun: Boolean = false
+        ): Intent =
             Intent(context, SubtitleActivity::class.java).apply {
                 putExtra(EXTRA_RECORD_ID, recordId)
                 putExtra(EXTRA_PLATFORM, platformId)
+                putExtra(EXTRA_WITH_NARRATION, withNarration)
+                putExtra(EXTRA_VOICE_LABEL, voiceLabel)
+                putExtra(EXTRA_KEEP_BACKGROUND, keepBackground)
+                putExtra(EXTRA_AUTO_RUN, autoRun)
             }
     }
 
@@ -53,8 +72,14 @@ class SubtitleActivity : AppCompatActivity() {
 
     private val repository = SubtitleRepository(this)
     private val processor = SubtitleProcessor(this)
+    private val narrationProcessor by lazy { NarrationProcessor(this) }
 
     private val cues = mutableListOf<SubtitleCue>()
+
+    private var withNarration = false
+    private var voiceLabel = TtsEngine.VoiceOption.DEFAULT.label
+    private var keepBackground = true
+    private var autoRun = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +89,12 @@ class SubtitleActivity : AppCompatActivity() {
         db = DatabaseHelper(this)
 
         recordId = intent.getLongExtra(EXTRA_RECORD_ID, 0L)
+        withNarration = intent.getBooleanExtra(EXTRA_WITH_NARRATION, false)
+        keepBackground = intent.getBooleanExtra(EXTRA_KEEP_BACKGROUND, true)
+        autoRun = intent.getBooleanExtra(EXTRA_AUTO_RUN, false)
+        voiceLabel = intent.getStringExtra(EXTRA_VOICE_LABEL)
+            ?.takeIf { it.isNotBlank() }
+            ?: TtsEngine.VoiceOption.DEFAULT.label
 
         if (recordId == 0L) {
             toast(getString(R.string.toast_subtitle_missing))
@@ -87,8 +118,24 @@ class SubtitleActivity : AppCompatActivity() {
         binding.btnGenerateSubtitle.setOnClickListener { generate() }
         binding.btnSaveSrt.setOnClickListener { saveSrt() }
         binding.btnOpenPlayer.setOnClickListener { openPlayer() }
+        binding.btnCreateNarration.setOnClickListener { startNarration() }
+        binding.btnOpenDub.setOnClickListener { openDub() }
 
         refreshFromRecord()
+
+        if (withNarration) {
+            binding.btnCreateNarration.visibility = View.VISIBLE
+        }
+        binding.tvSubtitleStatus.text = if (withNarration) {
+            getString(R.string.narration_progress_check_tts)
+        } else {
+            getString(R.string.subtitle_cues_empty)
+        }
+
+        // Tab Douyin bam "Bat dau xu ly" -> chay luon, khong bat nguoi dung bam them.
+        if (autoRun) {
+            if (cues.isEmpty()) generate() else if (withNarration) startNarration()
+        }
     }
 
     private fun setupToolbar() {
@@ -149,24 +196,76 @@ class SubtitleActivity : AppCompatActivity() {
         binding.tvSubtitleStatus.text = saved?.let { "Đã có sẵn phụ đề" }
             ?: getString(R.string.subtitle_cues_empty)
         binding.pbSubtitle.visibility = View.GONE
+        binding.pbSubtitle.isIndeterminate = true
         binding.btnGenerateSubtitle.isEnabled = true
+        binding.btnCreateNarration.visibility = if (withNarration) View.VISIBLE else View.GONE
+        binding.btnOpenDub.visibility = if (rec.dubPath.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun generate() {
         val source = selectedSourceLanguage
+        binding.btnCreateNarration.visibility = View.GONE
         lifecycleScope.launch {
             try {
                 val path = processor.process(record = record!!, sourceLanguage = source) { progress ->
                     binding.pbSubtitle.visibility = View.VISIBLE
+                    binding.pbSubtitle.isIndeterminate = false
                     binding.pbSubtitle.progress = progress.percent
                     binding.tvSubtitleStatus.text = progress.message
                 }
                 toast(getString(R.string.toast_subtitle_created))
                 refreshFromRecord()
+                if (withNarration) startNarration()
+            } catch (e: CancellationException) {
+                binding.pbSubtitle.visibility = View.GONE
+                throw e
             } catch (e: Exception) {
                 binding.pbSubtitle.visibility = View.GONE
                 binding.tvSubtitleStatus.text = getString(R.string.subtitle_error_empty)
                 toast(getString(R.string.toast_subtitle_error, e.message ?: ""))
+            }
+        }
+    }
+
+    /** Phase D: doc tung cau phu de -> track thuyet minh -> MP4 long tieng. */
+    private fun startNarration() {
+        val rec = record ?: return
+        if (cues.isEmpty()) {
+            toast(getString(R.string.subtitle_cues_empty))
+            return
+        }
+        val option = TtsEngine.VoiceOption.fromLabel(voiceLabel)
+        binding.btnCreateNarration.isEnabled = false
+        binding.btnGenerateSubtitle.isEnabled = false
+        lifecycleScope.launch {
+            try {
+                binding.pbSubtitle.visibility = View.VISIBLE
+                binding.pbSubtitle.isIndeterminate = false
+                binding.pbSubtitle.progress = 0
+                val result = narrationProcessor.process(
+                    record = rec,
+                    cues = cues.toList(),
+                    voice = option,
+                    keepBackground = keepBackground
+                ) { progress ->
+                    binding.pbSubtitle.progress = progress.percent
+                    binding.tvSubtitleStatus.text = progress.message
+                }
+                withContext(Dispatchers.IO) {
+                    db.updateDub(recordId, result.dubPath, option.label, "done")
+                }
+                toast(getString(R.string.narration_done))
+                refreshFromRecord()
+            } catch (e: CancellationException) {
+                binding.pbSubtitle.visibility = View.GONE
+                throw e
+            } catch (e: Exception) {
+                binding.pbSubtitle.visibility = View.GONE
+                binding.tvSubtitleStatus.text = e.message ?: getString(R.string.subtitle_error_empty)
+                toast(getString(R.string.toast_subtitle_error, e.message ?: ""))
+            } finally {
+                binding.btnCreateNarration.isEnabled = true
+                binding.btnGenerateSubtitle.isEnabled = true
             }
         }
     }
@@ -192,6 +291,22 @@ class SubtitleActivity : AppCompatActivity() {
             putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
             putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(processor.repository.pathFor(recordId)))
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
+        }
+        startActivity(intent)
+    }
+
+    /** Mo ban MP4 da long tieng thuyet minh. */
+    private fun openDub() {
+        val rec = record ?: return
+        if (rec.dubPath.isEmpty()) return
+        val uri = runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull() ?: run {
+            toast(getString(R.string.toast_file_missing))
+            return
+        }
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra(PlayerActivity.EXTRA_RECORD_ID, recordId)
+            putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
+            putExtra(PlayerActivity.EXTRA_TITLE, "${rec.title} · ${getString(R.string.action_open_dub)}")
         }
         startActivity(intent)
     }
