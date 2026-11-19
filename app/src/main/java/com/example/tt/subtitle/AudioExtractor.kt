@@ -41,10 +41,9 @@ object AudioExtractor {
             extractor.selectTrack(audioTrack)
             codec = MediaCodec.createDecoderByType(mime)
             // Yeu cau PCM 16-bit de mo moi may; se doi sang float o day.
-            val decodeFormat = MediaFormat.createAudioFormat(mime, sampleRate, channels).apply {
-                setInteger(MediaFormat.KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
-            }
-            codec.configure(decodeFormat, null, null, 0)
+            // Giu nguyen format goc (csd-0/csd-1) de decoder AAC/Opus khoi loi.
+            format.setInteger(MediaFormat.KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
+            codec.configure(format, null, null, 0)
             codec.start()
 
             val info = MediaCodec.BufferInfo()

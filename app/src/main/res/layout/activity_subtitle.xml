@@ -113,12 +113,13 @@
                     android:paddingBottom="@dimen/space_12" />
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.progressindicator.MaterialProgressIndicator
+            <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/pbSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_12"
-                android:indeterminate="true" />
+                android:indeterminate="true"
+                android:max="100" />
 
             <TextView
                 android:id="@+id/tvSubtitleStatus"

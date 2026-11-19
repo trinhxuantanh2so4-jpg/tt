@@ -15,10 +15,12 @@ import com.example.tt.data.DownloadRecord
 import com.example.tt.databinding.ActivitySubtitleBinding
 import com.example.tt.network.VideoPlatform
 import com.example.tt.subtitle.CueBuilder
+import com.example.tt.subtitle.SubtitleCue
 import com.example.tt.subtitle.SubtitleProcessor
 import com.example.tt.subtitle.SrtWriter
 import com.example.tt.subtitle.SubtitleRepository
 import com.example.tt.ui.MediaUri
+import com.example.tt.ui.SubtitleAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,7 +54,7 @@ class SubtitleActivity : AppCompatActivity() {
     private val repository = SubtitleRepository(this)
     private val processor = SubtitleProcessor(this)
 
-    private val cues = mutableListOf<CueBuilder.SubtitleCue>()
+    private val cues = mutableListOf<SubtitleCue>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,7 +112,10 @@ class SubtitleActivity : AppCompatActivity() {
         binding.spinnerSubtitleLanguage.setOnItemSelectedListener =
             object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
-                    parent: android.view.ViewGroup?, view: android.view.View?, position: Int, id: Long
+                    parent: android.widget.AdapterView<*>?,
+                    view: android.view.View?,
+                    position: Int,
+                    id: Long
                 ) {
                     val code = when (binding.spinnerSubtitleLanguage.selectedItem?.toString()) {
                         "Tiếng Anh" -> "en"
@@ -120,7 +125,7 @@ class SubtitleActivity : AppCompatActivity() {
                     if (code.isNotEmpty()) selectedSourceLanguage = code
                 }
 
-                override fun onNothingSelected(parent: android.view.ViewGroup?) = Unit
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
             }
     }
 

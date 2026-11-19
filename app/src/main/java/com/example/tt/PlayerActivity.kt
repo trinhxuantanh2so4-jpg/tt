@@ -43,16 +43,18 @@ class PlayerActivity : AppCompatActivity() {
             Uri.parse(path)
         }
         subtitleUri = getIntent().getParcelableExtra(EXTRA_SUBTITLE_URI)
+        val srtUri: Uri? = subtitleUri
 
-        val mediaItem = MediaItem.Builder().setUri(videoUri).build()
-        if (subtitleUri != null) {
-            val subtitle = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
+        val builder = MediaItem.Builder().setUri(videoUri)
+        if (srtUri != null) {
+            val subtitle = MediaItem.SubtitleConfiguration.Builder(srtUri)
                 .setMimeType(MimeTypes.APPLICATION_SUBRIP)
                 .setLanguage("vi")
-                .setSelectionFlags(C.SelectionFlags.SELECTION_FLAG_FORCED)
+                .setSelectionFlags(C.SELECTION_FLAG_FORCED)
                 .build()
-            mediaItem.setSubtitleConfigurations(listOf(subtitle))
+            builder.setSubtitleConfigurations(listOf(subtitle))
         }
+        val mediaItem = builder.build()
 
         player.setMediaItem(mediaItem, true)
         player.prepare()

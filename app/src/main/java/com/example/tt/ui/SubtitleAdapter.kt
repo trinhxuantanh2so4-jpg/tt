@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tt.R
 import com.example.tt.databinding.ItemSubtitleCueBinding
-import com.example.tt.subtitle.CueBuilder
+import com.example.tt.subtitle.SubtitleCue
 
 /**
  * Danh sach cue cua file .srt dang duoc tao - moi cue co TextInput de nguoi dung
@@ -17,9 +17,9 @@ class SubtitleAdapter(
     private val onTextChanged: (Int, String) -> Unit
 ) : RecyclerView.Adapter<SubtitleAdapter.VH>() {
 
-    private val items = mutableListOf<CueBuilder.SubtitleCue>()
+    private val items = mutableListOf<SubtitleCue>()
 
-    fun submitList(newItems: List<CueBuilder.SubtitleCue>) {
+    fun submitList(newItems: List<SubtitleCue>) {
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -28,7 +28,7 @@ class SubtitleAdapter(
     class VH(val binding: ItemSubtitleCueBinding) : RecyclerView.ViewHolder(binding.root) {
         private var watcher: TextWatcher? = null
 
-        fun bind(cue: CueBuilder.SubtitleCue, position: Int) {
+        fun bind(cue: SubtitleCue, position: Int) {
             binding.tvCueTime.text =
                 "%02d:%02d --> %02d:%02d".format(
                     (cue.startMs / 60_000).toInt(),
@@ -37,7 +37,7 @@ class SubtitleAdapter(
                     ((cue.endMs % 60_000) / 1000).toInt()
                 )
             binding.tvCueSource.text = cue.source.ifEmpty { cue.text }
-            binding.tilCueText.editText?.setHint(getContext().getString(R.string.subtitle_edit_hint))
+            binding.etCueText.hint = binding.root.context.getString(R.string.subtitle_edit_hint)
             binding.etCueText.setText(cue.text)
             watcher?.let { binding.etCueText.removeTextChangedListener(it) }
             watcher = object : TextWatcher {
