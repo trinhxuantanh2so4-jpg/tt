@@ -4,14 +4,19 @@
     <string name="app_tagline">Tải video TikTok &amp; Douyin không logo</string>
 
     <!-- ===== Dieu huong ===== -->
-    <string name="nav_download">Tải video</string>
+    <string name="nav_download">TikTok</string>
+    <string name="nav_douyin">Douyin</string>
     <string name="nav_trending">Thịnh hành</string>
     <string name="nav_history">Lịch sử</string>
     <string name="nav_profile">Hồ sơ</string>
 
     <!-- ===== Man tai video ===== -->
-    <string name="main_subtitle">Dán link TikTok hoặc Douyin để tải video không logo</string>
+    <string name="main_subtitle">Dán link TikTok để tải video không logo</string>
+    <string name="douyin_subtitle">Tải Douyin không logo · vietsub &amp; thuyết minh</string>
     <string name="hint_url">Dán link TikTok hoặc Douyin…</string>
+    <string name="hint_url_tiktok">Dán link TikTok…</string>
+    <string name="hint_url_douyin">Dán link Douyin…</string>
+    <string name="cover_description">Ảnh bìa video</string>
     <string name="action_paste">Dán link từ clipboard</string>
     <string name="action_analyze">Phân tích link</string>
     <string name="action_download">Tải video</string>
@@ -29,6 +34,8 @@
 
     <string name="empty_title">Chưa có video nào</string>
     <string name="empty_desc">Dán link TikTok hoặc Douyin ở trên rồi bấm Phân tích link.\nBạn cũng có thể chia sẻ link từ TikTok/Douyin sang app này.</string>
+    <string name="empty_desc_tiktok">Dán link TikTok ở trên rồi bấm Phân tích link.\nBạn cũng có thể chia sẻ link từ TikTok sang app này.</string>
+    <string name="empty_desc_douyin">Dán link Douyin ở trên rồi bấm Phân tích link.\nSau khi tải xong, chọn vietsub và thuyết minh nếu muốn.</string>
     <string name="error_title">Không phân tích được link</string>
     <string name="error_desc">Kiểm tra kết nối mạng rồi thử lại.</string>
 
@@ -37,7 +44,11 @@
     <string name="toast_paste_empty">Clipboard không có link TikTok hoặc Douyin</string>
     <string name="toast_paste_done">Đã dán link từ clipboard</string>
     <string name="toast_need_link">Vui lòng dán link TikTok hoặc Douyin</string>
+    <string name="toast_wrong_platform">Đây là link %1$s — hãy dùng tab %2$s</string>
+    <string name="toast_switch_douyin">Link Douyin — đã chuyển sang tab Douyin</string>
+    <string name="toast_switch_tiktok">Link TikTok — đã chuyển sang tab TikTok</string>
     <string name="toast_need_analyze">Phân tích link trước đã!</string>
+    <string name="toast_need_download_first">Hãy tải video xong rồi mới xử lý phụ đề / thuyết minh.</string>
     <string name="toast_choose_canceled">Đã huỷ chọn nơi lưu</string>
     <string name="toast_no_video">Không còn video để lưu, hãy phân tích lại link</string>
     <string name="toast_saved_custom">Đã lưu vào vị trí bạn chọn</string>
@@ -116,6 +127,16 @@
 
     <!-- ===== Phu de + dich + play video ===== -->
     <string name="subtitle_section_title">Phụ đề tiếng Việt</string>
+    <string name="subtitle_options_title">Vietsub &amp; thuyết minh</string>
+    <string name="subtitle_options_hint">Nhận dạng lời nói bằng Moonshine AI, dịch sang tiếng Việt bằng ML Kit rồi (tuỳ chọn) đọc thành tiếng.</string>
+    <string name="option_vietsub">Phụ đề tiếng Việt</string>
+    <string name="option_narration">Thuyết minh bằng giọng đọc</string>
+    <string name="voice_reading">Giọng đọc</string>
+    <string name="background_audio">Âm thanh nền</string>
+    <string name="background_keep">Giữ âm gốc nhỏ (20%)</string>
+    <string name="background_narration_only">Chỉ thuyết minh</string>
+    <string name="process_estimate">Xử lý sau khi tải xong, có thể mất vài chục giây.</string>
+    <string name="action_start_processing">Bắt đầu xử lý</string>
     <string name="subtitle_hint_process">Tự động nhận dạng lời nói bằng Moonshine AI rồi dịch sang tiếng Việt bằng ML Kit.</string>
     <string name="action_generate_subtitle">Tạo phụ đề</string>
     <string name="action_save_srt">Lưu file .srt</string>
@@ -143,5 +164,12 @@
         <item value="zh">Tiếng Trung</item>
         <item value="en">Tiếng Anh</item>
         <item value="vi">Tiếng Việt</item>
+    </string-array>
+
+    <string-array name="voice_options">
+        <item>Nữ · 1.0x</item>
+        <item>Nam · 1.0x</item>
+        <item>Nữ · 1.25x</item>
+        <item>Nam · 1.25x</item>
     </string-array>
 </resources>

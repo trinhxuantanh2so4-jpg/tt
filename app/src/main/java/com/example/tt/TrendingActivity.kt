@@ -31,7 +31,7 @@ class TrendingActivity : AppCompatActivity() {
         binding = ActivityTrendingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupBottomNav(binding.bottomNav, R.id.nav_trending)
+        setupBottomNav(binding.bottomNav, R.id.nav_none)
 
         adapter = TrendingAdapter { openInMain(it) }
         binding.rvTrending.layoutManager = GridLayoutManager(this, 2)
@@ -85,18 +85,18 @@ class TrendingActivity : AppCompatActivity() {
             return
         }
         val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_VIDEO_ID, video.id ?: "")
-            putExtra(MainActivity.EXTRA_TITLE, video.title ?: getString(R.string.app_name))
-            putExtra(MainActivity.EXTRA_AUTHOR, video.author?.nickname ?: "TikTok")
-            putExtra(MainActivity.EXTRA_COVER, video.cover ?: "")
-            putExtra(MainActivity.EXTRA_SOURCE_URL, "https://www.tiktok.com/video/${video.id}")
-            putExtra(MainActivity.EXTRA_DOWNLOAD_URL, playUrl)
+            putExtra(BaseDownloadActivity.EXTRA_VIDEO_ID, video.id ?: "")
+            putExtra(BaseDownloadActivity.EXTRA_TITLE, video.title ?: getString(R.string.app_name))
+            putExtra(BaseDownloadActivity.EXTRA_AUTHOR, video.author?.nickname ?: "TikTok")
+            putExtra(BaseDownloadActivity.EXTRA_COVER, video.cover ?: "")
+            putExtra(BaseDownloadActivity.EXTRA_SOURCE_URL, "https://www.tiktok.com/video/${video.id}")
+            putExtra(BaseDownloadActivity.EXTRA_DOWNLOAD_URL, playUrl)
             putExtra(
-                MainActivity.EXTRA_QUALITY,
+                BaseDownloadActivity.EXTRA_QUALITY,
                 if (video.hdPlayUrl != null) "HD" else "NO_WATERMARK"
             )
-            putExtra(MainActivity.EXTRA_SIZE, video.hdSize ?: video.size ?: 0L)
-            putExtra(MainActivity.EXTRA_DURATION, video.duration ?: 0L)
+            putExtra(BaseDownloadActivity.EXTRA_SIZE, video.hdSize ?: video.size ?: 0L)
+            putExtra(BaseDownloadActivity.EXTRA_DURATION, video.duration ?: 0L)
             addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         }
         startActivity(intent)

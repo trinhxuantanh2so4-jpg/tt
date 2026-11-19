@@ -3,11 +3,11 @@ package com.example.tt.ui
 import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
+import com.example.tt.DouyinActivity
 import com.example.tt.HistoryActivity
 import com.example.tt.MainActivity
 import com.example.tt.ProfileActivity
 import com.example.tt.R
-import com.example.tt.TrendingActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 /**
@@ -22,7 +22,7 @@ fun AppCompatActivity.setupBottomNav(nav: BottomNavigationView, currentId: Int) 
 
         val target = when (item.itemId) {
             R.id.nav_download -> MainActivity::class.java
-            R.id.nav_trending -> TrendingActivity::class.java
+            R.id.nav_douyin -> DouyinActivity::class.java
             R.id.nav_history -> HistoryActivity::class.java
             R.id.nav_profile -> ProfileActivity::class.java
             else -> return@setOnItemSelectedListener false

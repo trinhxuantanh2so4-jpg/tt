@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Id "khong chon muc nao" cho cac man khong nam trong bottom nav (vd: Thinh hanh). -->
+    <item name="nav_none" type="id" />
+</resources>
