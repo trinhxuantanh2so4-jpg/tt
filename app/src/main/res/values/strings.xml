@@ -49,6 +49,7 @@
     <string name="toast_switch_tiktok">Link TikTok — đã chuyển sang tab TikTok</string>
     <string name="toast_need_analyze">Phân tích link trước đã!</string>
     <string name="toast_need_download_first">Hãy tải video xong rồi mới xử lý phụ đề / thuyết minh.</string>
+    <string name="toast_download_ready_process">Đã tải xong — bấm Bắt đầu xử lý để tạo vietsub / thuyết minh.</string>
     <string name="toast_choose_canceled">Đã huỷ chọn nơi lưu</string>
     <string name="toast_no_video">Không còn video để lưu, hãy phân tích lại link</string>
     <string name="toast_saved_custom">Đã lưu vào vị trí bạn chọn</string>

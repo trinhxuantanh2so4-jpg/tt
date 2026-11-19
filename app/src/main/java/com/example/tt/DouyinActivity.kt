@@ -48,6 +48,7 @@ class DouyinActivity : BaseDownloadActivity() {
         options.swVietsub.setOnCheckedChangeListener { _, checked ->
             if (!checked) options.swNarration.isChecked = false
             options.swNarration.isEnabled = checked
+            updateStartButton()
         }
 
         options.swNarration.setOnCheckedChangeListener { _, checked ->
@@ -77,23 +78,26 @@ class DouyinActivity : BaseDownloadActivity() {
         // Trang thai ban dau
         options.tilVoice.visibility = View.GONE
         options.layoutBackground.visibility = View.GONE
+        updateStartButton()
     }
 
     override fun onVideoCardShown(rec: DownloadRecord, duration: Long?) {
         options.root.visibility = View.VISIBLE
         options.tvProcessEstimate.text = getString(R.string.process_estimate)
+        updateStartButton()
     }
 
     override fun onDownloadCompleted(record: DownloadRecord) {
-        // Chi tu mo man phu de khi nguoi dung da bat vietsub.
+        // Khong tu mo man phu de: nguoi dung phai bam "Bat dau xu ly" de chay.
+        updateStartButton()
         if (options.swVietsub.isChecked) {
-            openSubtitle(
-                record,
-                withNarration = options.swNarration.isChecked,
-                voiceLabel = options.spinnerVoice.selectedItem?.toString().orEmpty(),
-                keepBackground = options.rbKeepBackground.isChecked
-            )
+            toast(getString(R.string.toast_download_ready_process))
         }
+    }
+
+    private fun updateStartButton() {
+        val hasFile = current?.filePath?.isNotEmpty() == true
+        options.btnStartProcessing.isEnabled = hasFile && options.swVietsub.isChecked
     }
 
     override fun onWrongPlatform(platform: VideoPlatform, url: String): Boolean {
