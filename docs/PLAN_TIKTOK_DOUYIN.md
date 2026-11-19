@@ -23,26 +23,28 @@
 
 ## 2. Điều hướng mới
 
-### Phương án chốt (khuyến nghị): 5 mục bottom nav
+### Phương án chốt: 4 mục bottom nav, tách hẳn TikTok / Douyin
 
 ```
-[ TikTok ]   [ Douyin ]   [ Thịnh hành ]   [ Lịch sử ]   [ Hồ sơ ]
- MainActivity  DouyinActivity  TrendingActivity  HistoryActivity  ProfileActivity
+[ TikTok ]   [ Douyin ]   [ Lịch sử ]   [ Hồ sơ ]
+ MainActivity  DouyinActivity  HistoryActivity  ProfileActivity
 ```
 
 - `MainActivity` **đổi nhãn thành "TikTok"**, chỉ nhận link TikTok; dán link Douyin →
   toast *"Link Douyin — chuyển sang tab Douyin"* + điều hướng.
 - `DouyinActivity` **mới**, có thêm khối tuỳ chọn vietsub/thuyết minh.
-- Giữ nguyên Trending/History/Profile, không đổi sang Fragment.
+- Tab **Thịnh hành** rời bottom nav, vẫn truy cập được bằng nút *"Video thịnh hành"*
+  (icon `ic_whatshot`) ở góc màn TikTok → mở `TrendingActivity` như cũ.
+- Không đổi sang Fragment.
 
-> Nếu muốn gọn 4 mục: bỏ tab **Thịnh hành** (đưa vào menu phụ ở tab TikTok). Cần chốt.
+> Đã chốt với người dùng: chỉ cần tách TikTok và Douyin; thuyết minh **chờ bấm "Bắt đầu xử lý"**.
 
 ### Thay đổi cụ thể
 
 | File | Việc |
 |------|------|
-| `res/menu/menu_bottom.xml` | Đổi title `nav_download` → "TikTok"; thêm item `nav_douyin` (icon mới `ic_douyin`). |
-| `ui/BottomNav.kt` | Map `nav_douyin` → `DouyinActivity`. |
+| `res/menu/menu_bottom.xml` | Đổi title `nav_download` → "TikTok"; thêm item `nav_douyin` (icon mới `ic_douyin`); bỏ `nav_trending`. |
+| `ui/BottomNav.kt` | Map `nav_douyin` → `DouyinActivity`; bỏ nhánh `nav_trending`. |
 | `AndroidManifest.xml` | Đăng ký `DouyinActivity` (`exported=false`). |
 
 ---
@@ -190,7 +192,7 @@ ALTER TABLE downloads ADD COLUMN burn_path     TEXT NOT NULL DEFAULT '';
 
 | Phase | Nội dung | Ước lượng |
 |-------|----------|-----------|
-| **0. Nền & CI** | Sửa CI xanh (đã sửa `Theme.Material3.Compact`), tách `part_download_form.xml` + `BaseDownloadActivity`, đổi bottom nav 5 mục, đổi nhãn TikTok | 0,5–1 ngày |
+| **0. Nền & CI** | Sửa CI xanh (đã sửa `Theme.Material3.Compact`), tách `part_download_form.xml` + `BaseDownloadActivity`, bottom nav 4 mục (TikTok/Douyin/Lịch sử/Hồ sơ), đổi nhãn TikTok, đưa Thịnh hành vào nút phụ | 0,5–1 ngày |
 | **1. Tab TikTok** | `MainActivity` chỉ nhận TikTok; chặn link Douyin + gợi ý chuyển tab; bỏ khối phụ đề khỏi màn TikTok | 0,5 ngày |
 | **2. Tab Douyin** | `DouyinActivity` + `part_subtitle_options.xml`; lưu tuỳ chọn; auto mở `SubtitleActivity` sau khi tải nếu bật vietsub | 1 ngày |
 | **3. Thuyết minh** | `TtsEngine` + `SystemTtsEngine` + `WavIo` + `NarrationTimeline` + `NarrationMuxer` + `NarrationProcessor`; UI giọng đọc; progress 2 bước TTS/Mux | 2–2,5 ngày |
@@ -281,12 +283,13 @@ app/src/test/java/com/example/tt/subtitle/
 
 ---
 
-## 11. Cần chốt trước khi code
+## 11. Quyết định đã chốt
 
-| # | Câu hỏi | Khuyến nghị |
-|---|---------|-------------|
-| 1 | Bottom nav **5 mục** (thêm Douyin) hay **4 mục** (bỏ Thịnh hành)? | 5 mục |
-| 2 | Thuyết minh chạy **tự động** sau khi tải hay **chờ bấm "Bắt đầu xử lý"**? | Chờ bấm (tiết kiệm pin) |
+| # | Vấn đề | Chốt |
+|---|--------|------|
+| 1 | Điều hướng | **4 mục: TikTok · Douyin · Lịch sử · Hồ sơ**; Thịnh hành vào nút phụ ở tab TikTok |
+| 2 | Thời điểm thuyết minh | **Chờ người dùng bấm "Bắt đầu xử lý"** sau khi tải xong |
 | 3 | Giọng mặc định | Nữ · 1.0x · giữ nền 20% |
-| 4 | Có giữ khả năng tạo vietsub cho TikTok (ẩn trong menu) không? | Có, nhưng không đưa lên UI chính |
+| 4 | Vietsub cho TikTok | Không đưa lên UI chính; giữ code để dùng lại sau |
 | 5 | Burn-in phụ đề cứng | Để phase sau |
+
