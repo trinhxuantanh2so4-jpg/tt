@@ -197,7 +197,7 @@ ALTER TABLE downloads ADD COLUMN burn_path     TEXT NOT NULL DEFAULT '';
 | **2. Tab Douyin** | `DouyinActivity` + `part_subtitle_options.xml`; lưu tuỳ chọn; auto mở `SubtitleActivity` sau khi tải nếu bật vietsub | 1 ngày |
 | **3. Thuyết minh** | `TtsEngine` + `SystemTtsEngine` + `WavIo` + `NarrationTimeline` + `NarrationMuxer` + `NarrationProcessor`; UI giọng đọc; progress 2 bước TTS/Mux | 2–2,5 ngày |
 | **4. Xem & lịch sử** | `PlayerActivity` chọn bản: Gốc / Vietsub / Thuyết minh; History badge + menu mở bản lồng tiếng, xoá bản xử lý | 1 ngày |
-| **5. Hoàn thiện** | Strings VI, dọn file tạm, README + sơ đồ, unit test mới, CI + release asset | 0,5–1 ngày |
+| **5. Hoàn thiện** | Strings VI, dọn file tạm, `abiFilters` giảm APK, README + sơ đồ, unit test mới, CI + release asset | 0,5–1 ngày |
 
 **Tổng:** ~5,5–6,5 ngày làm việc. MVP của đợt này = Phase 0 → 4.
 
@@ -259,6 +259,7 @@ app/src/test/java/com/example/tt/subtitle/
 | Douyin đổi HTML | Cao | Resolver tách riêng (đã có), fallback API + nút mở trình duyệt |
 | Tách code làm hỏng luồng tải cũ | Trung bình | Phase 0 làm trước, test tay 3 link TikTok + 3 link Douyin, unit test parser giữ nguyên |
 | Dung lượng file (MP4 + SRT + MP4 lồng tiếng) | Thấp | Cho xoá bản xử lý trong Lịch sử, hiển thị dung lượng |
+| APK phình to do native libs Moonshine | Trung bình | Bật `abiFilters` chỉ `arm64-v8a` + `x86_64` (APK Phase B+C hiện ~127 MB); model vẫn tải sau, không nhúng |
 
 ---
 
