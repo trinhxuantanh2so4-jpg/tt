@@ -34,6 +34,7 @@ Cả 4 màn hình chính dùng chung **BottomNavigationView** (Tải · Thịnh 
 
 Kế hoạch chi tiết: [`docs/UI_UX_PLAN.md`](docs/UI_UX_PLAN.md)
 Kế hoạch Douyin + vietsub/thuyết minh (Moonshine AI): [`docs/DOUYIN_VIETSUB_PLAN.md`](docs/DOUYIN_VIETSUB_PLAN.md)
+Kế hoạch tách 2 phần TikTok (API) / Douyin (vietsub + thuyết minh): [`docs/PLAN_TIKTOK_DOUYIN.md`](docs/PLAN_TIKTOK_DOUYIN.md)
 
 | Hạng mục | Nội dung đã làm |
 |----------|-----------------|
