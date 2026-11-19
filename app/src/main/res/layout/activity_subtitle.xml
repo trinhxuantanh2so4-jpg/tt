@@ -122,7 +122,7 @@
                 android:indeterminate="true" />
 
             <TextView
-                android:id="@+tvSubtitleStatus"
+                android:id="@+id/tvSubtitleStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_8"
