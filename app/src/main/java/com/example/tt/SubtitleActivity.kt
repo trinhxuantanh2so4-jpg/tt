@@ -72,8 +72,11 @@ class SubtitleActivity : AppCompatActivity() {
     private var recordId: Long = 0L
     private var record: DownloadRecord? = null
 
-    private val repository = SubtitleRepository(this)
-    private val processor = SubtitleProcessor(this)
+    // KHÔNG khởi tạo eager ở đây: lúc Activity còn chưa attachBaseContext(),
+    // context.applicationContext trả null -> SubtitleRepository ném NPE ngay trong
+    // constructor -> "Unable to instantiate activity". Dùng lazy để tạo sau attach.
+    private val repository by lazy { SubtitleRepository(this) }
+    private val processor by lazy { SubtitleProcessor(this) }
     private val narrationProcessor by lazy { NarrationProcessor(this) }
 
     private val cues = mutableListOf<SubtitleCue>()

@@ -168,6 +168,13 @@
     <string name="toast_player_error">Không phát được bản này: %1$s</string>
     <string name="toast_narration_error">Không thể tạo thuyết minh: %1$s</string>
     <string name="crash_reported">Lỗi trước đó: %1$s</string>
+    <string name="crash_log_title">Chi tiết lỗi gần nhất</string>
+    <string name="crash_log_hint">Chụp màn hình hoặc sao chép nội dung bên dưới để báo lỗi. Nhớ che API key nếu có.</string>
+    <string name="crash_log_copy">Sao chép log</string>
+    <string name="crash_log_close">Đóng &amp; xoá log</string>
+    <string name="crash_log_copied">Đã sao chép log lỗi</string>
+    <string name="crash_log_copy_failed">Không sao chép được, hãy chụp màn hình</string>
+    <string name="crash_log_empty">Không có log lỗi.</string>
     <string name="subtitle_edit_hint">Sửa câu phụ đề (tiếng Việt)…</string>
     <string name="subtitle_source_hint">Lời gốc</string>
     <string name="dialog_delete_srt_title">Xoá file phụ đề?</string>

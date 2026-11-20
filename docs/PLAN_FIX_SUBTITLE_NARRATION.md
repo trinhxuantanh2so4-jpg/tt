@@ -16,6 +16,8 @@
 | T6 | 🟠 | C: đổi giọng/âm nền không áp dụng | Giọng/âm nền chỉ lưu sau khi mux MP4 thành công; máy không có giọng → mux fail → mọi thay đổi mất | Lưu giọng vào SQLite và âm nền vào prefs **ngay khi đổi**, load lại lúc vào màn | ✅ |
 | T7 | 🟡 | Không có log khi crash | Không có crash handler | `TTApp` ghi stack trace ra `filesDir/crash_last.txt`, hiện toast tóm tắt lần mở tiếp theo | ✅ |
 | T8 | 🟢 | CI / tài liệu | — | `aapt2 compile`, unit test JVM, push `main`, CI xanh, cập nhật `QA_CHECKLIST` form mới | ✅ (`3c58cab`, run `44711443774`; asset 84.929.976 byte) |
+| T9 | 🔴 | QA vòng 2: mở Vietsub/Thuyết minh từ lịch sử → app thoát, toast `Lỗi trước đó: RuntimeException: Unable to instantiate activity ... SubtitleActivity: NullPointerException` | `SubtitleActivity` khởi tạo eager `SubtitleRepository(this)`/`SubtitleProcessor(this)`: lúc constructor chạy, Activity **chưa attachBaseContext** nên `context.applicationContext` là null | Đổi 3 field sang `by lazy`; chỉ tạo repository/processor sau khi Activity đã attach | ☐ (chờ CI) |
+| T10 | 🟡 | Toast chỉ cắt 160 ký tự của exception ngoài, không thấy nguyên nhân thật | `TTApp` lưu `throwable.toString()` của outer exception | Lưu **root cause** vào summary + full stack vào file; debug APK tự mở `CrashLogActivity` hiện full stack, nút Sao chép/Đóng | ☐ (chờ CI) |
 
 ## Thứ tự triển khai
 

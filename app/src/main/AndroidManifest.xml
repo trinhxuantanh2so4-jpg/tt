@@ -70,6 +70,11 @@
             android:exported="false"
             android:launchMode="singleTop" />
 
+        <!-- Hien full stack trace cua lan crash gan nhat (debug APK) -->
+        <activity
+            android:name=".CrashLogActivity"
+            android:exported="false" />
+
         <activity
             android:name=".PlayerActivity"
             android:exported="false"

@@ -148,6 +148,8 @@ Thiết bị: giả lập / máy thật | Android ... | có giọng vi-VN: có/k
 
 1. Sửa 1 câu → Lưu file .srt → thoát màn → mở lại:
    câu sửa còn: có/không | lời gốc còn: có/không | số câu không đổi: có/không
+   Cách làm: mở video có phụ đề → màn "Tạo/sửa phụ đề" → sửa 1 dòng ở ô text (không sửa "Lời gốc")
+   → bấm "Lưu file .srt" → bấm quay lại → vào Lịch sử → mở tiếp màn phụ đề đó → so sánh lại câu đã sửa.
 2. Lịch sử: badge Vietsub hiện đúng: có/không | badge Thuyết minh (nếu có file): có/không
    nhấn card → chọn được bản: Gốc / Có phụ đề / Thuyết minh
 3. Từ lịch sử đổi giọng (Nam 1.25x) + "Chỉ thuyết minh" → thoát/mở lại:
@@ -158,6 +160,7 @@ Thiết bị: giả lập / máy thật | Android ... | có giọng vi-VN: có/k
    tạo được MP4: có/không | nghe có phụ đề chồng: có/không | giọng đúng lựa chọn: có/không
 6. Player đổi Gốc ↔ Vietsub ↔ Thuyết minh: không crash: có/không | phụ đề đúng bản: có/không
 7. Xoá bản xử lý: sạch file: có/không | video gốc vẫn mở: có/không
-8. Nếu vẫn có lỗi: message tiếng Việt hiện trên app + toast "Lỗi trước đó: ..." lúc mở app:
+8. Nếu vẫn có lỗi: debug APK sẽ tự mở màn "Chi tiết lỗi gần nhất" lúc mở app.
+   Bấm "Sao chép log" rồi dán toàn bộ nội dung vào đây (không cần chụp màn hình từng dòng):
    ...
 ```
