@@ -21,15 +21,15 @@ Cập nhật: 2026-11-20.
 | Hạng mục | Lệnh / cách kiểm tra | Trạng thái |
 |----------|----------------------|-----------|
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
-| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`7444501`) |
-| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`7444501`) |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`7444501`) |
+| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`e518b12`, gồm 8 test DTK) |
+| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`e518b12`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`e518b12`, 84,9 MB) |
 
 Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`,
 `WavIoTest`, `NarrationTimelineTest`, `DtkMapperTest`, `DtkErrorTest`.
 
-> trạng thái các dòng "✅ pass (`7444501`)" ở bảng trên là của bản trước khi đổi nguồn tải
-> sang DTK. Kết quả của commit DTK được ghi nhận riêng trong `docs/PLAN_API_DTK.md` §7.1.
+> Các test số mới (`DtkMapperTest`, `DtkErrorTest`) chỉ là unit test JVM thuần, chưa thay thế
+> QA trên máy thật có server DTK — xem `docs/PLAN_API_DTK.md` §7.1 và §5 của file này.
 
 ## 3. Checklist tay trên máy thật (chưa chạy trong CI)
 

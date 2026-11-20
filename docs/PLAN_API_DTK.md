@@ -279,8 +279,11 @@ Không truyền key vào CI.
 - [x] Không có key nào trong source/APK; config nhập lúc chạy (`dtk_prefs`).
 - [x] Không cấu hình → app chạy y hệt bản `fbe8ba3` (mặc định `DtkConfig.enabled = false`).
 - [x] Không đụng code vietsub/thuyết minh/DB/player.
-- [ ] CI xanh, `app-debug.apk` trên `v1.0.0` được cập nhật.
+- [x] CI xanh (`e518b12`), `app-debug.apk` trên `v1.0.0` được ghi đè (84,9 MB).
 - [ ] QA 8 ca trên máy thật có server DTK + key read-only.
+
+> Lần đầu push (`2e49de6`) CI đỏ do Gson overload không rõ trong `DtkErrorTest`;
+> đã sửa ở `e518b12` bằng `JsonParser.parseString(...)` rồi build lại thành công.
 
 ## 11. Phạm vi không làm trong đợt này
 
