@@ -1,6 +1,7 @@
 package com.example.tt.network.dtk
 
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -90,8 +91,8 @@ class DtkErrorTest {
               }
             }
         """.trimIndent()
-        val envelope = gson.fromJson(json, DtkEnvelope::class.java) as DtkEnvelope<*>
-        val task = gson.fromJson(envelope.data, DtkTask::class.java)
+        val root = JsonParser.parseString(json).asJsonObject
+        val task = gson.fromJson(root.getAsJsonObject("data"), DtkTask::class.java)
 
         assertEquals("failed", task?.state)
         assertNotNull(task?.error)
@@ -105,9 +106,9 @@ class DtkErrorTest {
         val json = """
             {"success":true,"data":{"task_id":"abc","state":"done","data":{"content_id":"7345","platform":"douyin"}}}
         """.trimIndent()
-        val envelope = gson.fromJson(json, DtkEnvelope::class.java) as DtkEnvelope<*>
-        val task = gson.fromJson(envelope.data, DtkTask::class.java)
-        val content = gson.fromJson(task?.data, DtkContent::class.java)
+        val root = JsonParser.parseString(json).asJsonObject
+        val task = gson.fromJson(root.getAsJsonObject("data"), DtkTask::class.java)
+        val content = task?.data?.let { gson.fromJson(it, DtkContent::class.java) }
 
         assertEquals("done", task?.state)
         assertEquals("7345", content?.content_id)
