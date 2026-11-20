@@ -29,6 +29,24 @@ App trình diễn **3 kỹ thuật chính**:
 
 4 màn hình chính (TikTok · Douyin · Lịch sử · Hồ sơ) dùng chung **BottomNavigationView** và **MaterialToolbar**; màn **Thịnh hành** mở từ icon 🔥 trên toolbar và cũng có bottom nav để chuyển tab.
 
+## Nguồn tải video tuỳ chọn (DTK API) ⚙️
+
+**Người dùng thông thường không cần làm gì.** Mặc định app vẫn dùng `tikwm` (TikTok) và `iesdouyin` (Douyin) như bản trước. Nếu bạn tự host [DTK](https://github.com/Evil0ctal/Douyin_TikTok_Download_API) và muốn đổi nguồn tải:
+
+- Vào menu `⋮` → **Nguồn tải video (nâng cao)** → nhập Base URL `https://...` + API key → **Kiểm tra kết nối** → **Lưu cấu hình**.
+- Chỉ cấp 2 quyền: `douyin:read` + `tiktok:read`. Key lưu trong `dtk_prefs` trên máy, **không nhúng vào APK/CI**, có thể xoá bằng nút **Xoá cấu hình**.
+- Pipeline vietsub/thuyết minh, SQLite, player và lịch sử **không đổi**.
+
+**Lấy key để test nhanh (demo công khai):**
+
+1. Mở https://demo.douyin.wtf → **Sign in** (trang tự điền sẵn tài khoản demo).
+2. Vào **API keys** → copy key hiển thị dạng plaintext.
+3. Trong app điền Base URL `https://demo.douyin.wtf` + key vừa copy.
+
+> Demo là instance dùng chung, giới hạn 30 request/10 giây, có thể reset hoặc tắt bất kỳ lúc nào — **chỉ để QA, không dùng làm dịch vụ production**. Không chia sẻ key demo công khai.
+
+**Dùng thật:** tự host theo [`docs/PLAN_API_DTK.md`](docs/PLAN_API_DTK.md) §5 (Docker Compose + reverse proxy TLS), tạo key read-only trong Console. Endpoint, mapping, fallback và checklist QA nằm trong file đó.
+
 ---
 
 # 🎨 GIAO DIỆN & TRẢI NGHIỆM (UI/UX)

@@ -58,12 +58,39 @@ Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `Cue
 
 Xem chi tiết 8 ca trong `docs/PLAN_API_DTK.md` §8. Những ca ưu tiên:
 
-- [ ] Menu toolbar → **Nguồn tải video**: để trống → 2 tab tải y hệt bản cũ.
-- [ ] Nhập Base URL `https://` + key, bấm **Kiểm tra kết nối** → hiện scopes
-      `douyin:read`, `tiktok:read` và `rate_limit_per_min`.
+- [ ] Menu toolbar → **Nguồn tải video (nâng cao)**: để trống → 2 tab tải y hệt bản cũ.
+- [ ] Lấy key demo để QA: https://demo.douyin.wtf → **Sign in** (tự điền sẵn) → **API keys**
+      → copy key plaintext → Base URL `https://demo.douyin.wtf` → **Kiểm tra kết nối**
+      → hiện scopes `douyin:read`, `tiktok:read` và `rate_limit_per_min`. Demo **chỉ để test**.
 - [ ] Dán nguyên caption tiếng Trung có `https://v.douyin.com/...` → tải được MP4 không logo.
 - [ ] Link `vm.tiktok.com` → tải được MP4 không logo.
 - [ ] Album ảnh / video riêng tư → báo đúng lỗi, **không** fallback vô ích.
 - [ ] Key sai / server tắt → báo lỗi rõ; xoá config → nguồn cũ vẫn tải được.
 - [ ] Bấm **Huỷ** lúc đang poll task → coroutine dừng ngay.
 - [ ] CDN trả 403 → `VideoDownloader` thử mirror từ `media.streams[].urls`.
+
+## 6. Form báo cáo QA (copy khung này để trả lời)
+
+```text
+APK: đã cài / lỗi cài (ghi rõ)
+Nguồn dùng để test: demo / tự host
+Base URL: https://...
+Scopes hiện sau "Kiểm tra kết nối": ...
+
+0. Chưa có key → TikTok/Douyin cũ: PASS / FAIL | ghi chú:
+1. Cấu hình + Kiểm tra kết nối: PASS / FAIL | dòng trạng thái:
+2. TikTok (3 link, có vm.tiktok.com): PASS / FAIL | link fail (nếu có): | có logo không:
+3. Douyin (3 link), trong đó dán NGUYÊN caption tiếng Trung: PASS / FAIL |
+   message lỗi (nếu có): | caption có bị cắt thành mỗi URL không:
+4. Album ảnh: PASS / FAIL | message nhận được:
+5. Video riêng tư/xoá: PASS / FAIL | message nhận được: | có fallback không:
+6. Key sai / tắt server / xoá config: PASS / FAIL | 3 bước:
+7. Huỷ lúc poll task: PASS / FAIL | log server có còn request /tasks/{id} mới không:
+8. CDN 403 → mirror: PASS / FAIL / SKIP:
+
+Ảnh chụp màn hình (đã che key): ...
+request_id / thời gian xảy ra (để so log DTK): ...
+```
+
+> Khi báo lỗi: che key, ghi đúng message tiếng Việt hiện trên app và (nếu có) `request_id`
+> trong `meta` của response DTK. Không gửi key thật vào issue/chat công khai.

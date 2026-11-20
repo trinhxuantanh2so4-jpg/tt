@@ -157,15 +157,21 @@ VideoResolver.resolve(source)            (cửa vào duy nhất - GIỮ NGUYÊN 
 
 ## 5. Cấu hình & bảo mật key
 
-- **Không nhét key vào APK.** Release `v1.0.0` là APK công khai → bất kỳ key nào nhúng vào
-  BuildConfig/CI secrets đều bị lộ sau khi decode. Dùng cấu hình **lúc chạy**, lưu trong
-  `SharedPreferences` riêng (`dtk_prefs`), `allowBackup=false` đã có trong manifest cần kiểm tra lại.
+- **Không nhét key vào APK, kể cả đã mã hoá.** Release `v1.0.0` là APK công khai → attacker
+  decode được cả ciphertext lẫn khoá giải mã (khoá giải mã cũng phải nằm trong APK).
+  Dùng cấu hình **lúc chạy**, lưu trong `SharedPreferences` riêng (`dtk_prefs`).
+  Manifest hiện `allowBackup="true"` → key có thể theo backup; chấp nhận được vì key chỉ đọc
+  và có thể revoke. Muốn chặn hẳn thì thêm `dataExtractionRules` (không làm ở đợt này).
 - Key chỉ có 2 scope `douyin:read`, `tiktok:read`, đặt `rate_limit` riêng (vd 60/phút), **có thể revoke**.
 - Nút "Kiểm tra kết nối" gọi `GET /api/v1/auth/me`, hiện `via`, scopes và `rate_limit_per_min`
   để người dùng biết key đang dùng đúng chưa.
-- Nếu base URL là `http://` (LAN/dev), cần `networkSecurityConfig` cho phép cleartext **chỉ cho domain
-  do người dùng nhập** — không bật `usesCleartextTraffic=true` toàn app. Production dùng HTTPS/Caddy.
-- Dùng demo `https://demo.douyin.wtf` chỉ để thử nghiệm; không đưa vào config mặc định của app.
+- Base URL chỉ nhận `https://` (code từ chối `http://`) → không cần `networkSecurityConfig`.
+  Self-host phải đặt reverse proxy TLS; production dùng Caddy/Nginx.
+- DTK là **tính năng tuỳ chọn**: menu toolbar ghi `Nguồn tải video (nâng cao)` và trong màn cấu
+  hình có sẵn hướng dẫn lấy key + chú thích "người dùng thông thường không cần cấu hình".
+- Demo `https://demo.douyin.wtf` **chỉ để QA**: đăng nhập bằng tài khoản tự điền sẵn →
+  trang **API keys** hiện key plaintext → copy. Không đưa vào config mặc định, không nhúng APK,
+  không giới thiệu cho người dùng cuối như một dịch vụ (instance dùng chung, có thể reset).
 
 ### Self-host tối thiểu (tài liệu chính: `01-quickstart.md`)
 

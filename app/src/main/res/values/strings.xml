@@ -168,13 +168,14 @@
     <string name="dialog_delete_srt_message">File .srt của video này sẽ bị xoá. Bạn có chắc không?</string>
 
     <!-- ===== Nguon tai video (DTK API) ===== -->
-    <string name="action_api_settings">Nguồn tải video</string>
-    <string name="api_settings_title">Nguồn tải video</string>
+    <string name="action_api_settings">Nguồn tải video (nâng cao)</string>
+    <string name="api_settings_title">Nguồn tải video (nâng cao)</string>
     <string name="api_settings_subtitle">Tuỳ chọn · DTK API</string>
-    <string name="api_settings_intro">Nếu cấu hình máy chủ DTK, ứng dụng sẽ tải video qua API này trước. Để trống thì ứng dụng dùng nguồn cũ như bình thường.</string>
+    <string name="api_settings_intro">Người dùng thông thường KHÔNG cần cấu hình — đóng màn này và dùng app như bình thường (nguồn cũ vẫn chạy). Chỉ nhập khi bạn tự host DTK hoặc đang test.</string>
     <string name="api_settings_base_url">Base URL (https://…)</string>
     <string name="api_settings_api_key">API key</string>
     <string name="api_settings_scope_note">Chỉ cấp các quyền douyin:read và tiktok:read. Key được lưu trên máy, không gửi kèm ứng dụng.</string>
+    <string name="api_settings_howto">Cách lấy key để thử nghiệm:\n1. Mở https://demo.douyin.wtf → Đăng nhập (trang tự điền sẵn tài khoản demo).\n2. Vào API keys → copy key hiển thị dạng plaintext.\n3. Điền Base URL: https://demo.douyin.wtf\n\nDemo dùng chung, chỉ để QA và có thể reset bất kỳ lúc nào. Để dùng thật hãy tự host DTK rồi tạo key trong Console (xem README / docs/PLAN_API_DTK.md).</string>
     <string name="api_settings_test">Kiểm tra kết nối</string>
     <string name="api_settings_save">Lưu cấu hình</string>
     <string name="api_settings_clear">Xoá cấu hình</string>

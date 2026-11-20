@@ -87,6 +87,17 @@
                 android:textSize="12sp" />
 
             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_12"
+                android:autoLink="web"
+                android:lineSpacingExtra="@dimen/space_2"
+                android:text="@string/api_settings_howto"
+                android:textColor="@color/text_secondary"
+                android:textColorLink="@color/accent"
+                android:textSize="12sp" />
+
+            <TextView
                 android:id="@+id/tvStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
