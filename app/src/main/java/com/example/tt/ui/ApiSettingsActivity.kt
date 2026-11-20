@@ -2,6 +2,7 @@ package com.example.tt.ui
 
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -30,6 +31,9 @@ class ApiSettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Che API key khi chụp màn hình / ghi màn hình: toàn bộ màn hình này
+        // được đánh dấu FLAG_SECURE, nên ảnh chụp sẽ chỉ thấy màn hình đen.
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         binding = ActivityApiSettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
