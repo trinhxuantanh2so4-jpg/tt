@@ -46,7 +46,7 @@
 - [x] Unit test JVM thuần cho `SubtitleSourceCodec` (không import Android).
 - [x] `aapt2 compile --dir app/src/main/res` OK local.
 - [x] Cập nhật `README.md`, `docs/QA_CHECKLIST.md`, `docs/PLAN_API_DTK.md`, `docs/PLAN_TIKTOK_DOUYIN.md`.
-- [ ] Push `main`, CI xanh, release `v1.0.0/app-debug.apk` được ghi đè. ← đang chờ
+- [x] Push `main`, CI xanh (`3624bf7`, run `44687595777`), release `v1.0.0/app-debug.apk` được ghi đè (84,9 MB, SHA256 `24eb24666a90640522cc47a05b6e369eab96c59eb09ae850295d42549c8bf6eb`).
 
 ---
 
@@ -62,4 +62,7 @@
 
 ## Trạng thái
 
-Phase 1–4 + test/docs local xong. Chờ CI xanh rồi tick Phase 5; QA tay trên máy thật dùng form `docs/QA_CHECKLIST.md` §7.
+Phase 1–5 xong; code đã push `3624bf7`, CI build + unit test xanh. Chờ QA tay trên máy thật theo
+`docs/QA_CHECKLIST.md` §7 (và §6 cho DTK). Các mục còn lại nằm trong phần “Việc còn lại” của
+`docs/PLAN_TIKTOK_DOUYIN.md`: burn-in cứng, tự co `speechRate`/fade, Tuỳ chọn Moonshine TTS,
+cấu hình giọng trong `ProfileActivity`.

@@ -27,12 +27,12 @@ Cập nhật: 2026-11-20.
 | Hạng mục | Lệnh / cách kiểm tra | Trạng thái |
 |----------|----------------------|-----------|
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
-| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`e518b12`, gồm 8 test DTK) |
-| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`e518b12`) |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`e518b12`, 84,9 MB) |
+| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`3624bf7`, 9 test) |
+| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`3624bf7`, run `44687595777`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`3624bf7`, 84,9 MB, SHA256 `24eb24666a90640522cc47a05b6e369eab96c59eb09ae850295d42549c8bf6eb`) |
 
 Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`,
-`WavIoTest`, `NarrationTimelineTest`, `DtkMapperTest`, `DtkErrorTest`.
+`WavIoTest`, `NarrationTimelineTest`, `DtkMapperTest`, `DtkErrorTest`, `SubtitleSourceCodecTest`.
 
 > Các test số mới (`DtkMapperTest`, `DtkErrorTest`) chỉ là unit test JVM thuần, chưa thay thế
 > QA trên máy thật có server DTK — xem `docs/PLAN_API_DTK.md` §7.1 và §5 của file này.
