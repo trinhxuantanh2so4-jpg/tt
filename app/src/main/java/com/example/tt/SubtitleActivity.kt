@@ -27,6 +27,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Man hinh tao phu de (Phase B+C):
@@ -111,6 +112,9 @@ class SubtitleActivity : AppCompatActivity() {
         binding.spinnerSubtitleLanguage.setSelection(
             if (record?.platform == VideoPlatform.DOUYIN) 0 else 1
         )
+        // setSelection truoc khi gan listener co the khong phat onItemSelected
+        // -> gan gia tri mac dinh tuong ung de TikTok khong bi nham "Tieng Trung".
+        selectedSourceLanguage = if (record?.platform == VideoPlatform.DOUYIN) "zh" else "en"
 
         setupToolbar()
         setupCuesRecycler()
@@ -123,9 +127,6 @@ class SubtitleActivity : AppCompatActivity() {
 
         refreshFromRecord()
 
-        if (withNarration) {
-            binding.btnCreateNarration.visibility = View.VISIBLE
-        }
         binding.tvSubtitleStatus.text = if (withNarration) {
             getString(R.string.narration_progress_check_tts)
         } else {
@@ -198,7 +199,8 @@ class SubtitleActivity : AppCompatActivity() {
         binding.pbSubtitle.visibility = View.GONE
         binding.pbSubtitle.isIndeterminate = true
         binding.btnGenerateSubtitle.isEnabled = true
-        binding.btnCreateNarration.visibility = if (withNarration) View.VISIBLE else View.GONE
+        binding.btnCreateNarration.visibility =
+            if (cues.isEmpty()) View.GONE else View.VISIBLE
         binding.btnOpenDub.visibility = if (rec.dubPath.isNotEmpty()) View.VISIBLE else View.GONE
     }
 
@@ -223,6 +225,9 @@ class SubtitleActivity : AppCompatActivity() {
                 binding.pbSubtitle.visibility = View.GONE
                 binding.tvSubtitleStatus.text = getString(R.string.subtitle_error_empty)
                 toast(getString(R.string.toast_subtitle_error, e.message ?: ""))
+            } finally {
+                binding.btnCreateNarration.visibility =
+                    if (cues.isEmpty()) View.GONE else View.VISIBLE
             }
         }
     }
@@ -286,10 +291,13 @@ class SubtitleActivity : AppCompatActivity() {
     private fun openPlayer() {
         val rec = record ?: return
         val uri = runCatching { MediaUri.resolve(this, rec.filePath) }.getOrNull() ?: return
+        val srtPath = processor.repository.pathFor(recordId)
         val intent = Intent(this, PlayerActivity::class.java).apply {
             putExtra(PlayerActivity.EXTRA_RECORD_ID, recordId)
             putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
-            putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(processor.repository.pathFor(recordId)))
+            if (File(srtPath).exists()) {
+                putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
+            }
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }
         startActivity(intent)

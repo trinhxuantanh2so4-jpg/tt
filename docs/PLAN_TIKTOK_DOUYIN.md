@@ -17,6 +17,7 @@
 | 5. `abiFilters`, README, strings, unit test | ✅ xong (CI xanh `c294d16`) |
 | 6. Tinh chỉnh luồng Douyin: không tự chạy, chờ bấm "Bắt đầu xử lý" | ✅ xong (CI xanh `e8e2955`) |
 | 7. `AGENTS.md` tiếng Việt cho session sau | ✅ xong (`7568690`) |
+| 8. QA: rà soát, sửa 8 lỗi (player crash, mất dữ liệu khi tải lại, nút thuyết minh...) | ✅ xong, xem `docs/QA_CHECKLIST.md` |
 
 ### Khác biệt so với kế hoạch ban đầu (đã triển khai thực tế)
 

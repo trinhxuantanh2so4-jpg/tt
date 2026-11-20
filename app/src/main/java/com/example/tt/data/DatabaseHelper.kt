@@ -143,7 +143,11 @@ class DatabaseHelper(context: Context) :
 
     // ================= DOWNLOADS: CRUD =================
 
-    /** INSERT - co tranh chap thi REPLACE (cung video tai lai) */
+    /**
+     * INSERT - tai lai cung video thi cap nhat dong cu thay vi REPLACE,
+     * giu nguyen id + du lieu da xu ly (vietsub / thuyet minh) de khong lam
+     * mo coi file .srt / .mp4 trong filesDir.
+     */
     fun insertDownload(rec: DownloadRecord): Long {
         val cv = ContentValues().apply {
             put(C_VIDEO_ID, rec.videoId)
@@ -155,9 +159,9 @@ class DatabaseHelper(context: Context) :
             put(C_QUALITY, rec.quality)
             put(C_FILE_PATH, rec.filePath)
             put(C_FILE_SIZE, rec.fileSize)
-            put(C_FAVORITE, rec.favorite)
             put(C_CREATED_AT, rec.createdAt)
             put(C_PLATFORM, rec.platform.id)
+            put(C_FAVORITE, rec.favorite)
             put(C_LANGUAGE, rec.language)
             put(C_SUBTITLE_PATH, rec.subtitlePath)
             put(C_PROCESS_STATUS, rec.processStatus)
@@ -167,6 +171,53 @@ class DatabaseHelper(context: Context) :
             put(C_BURN_PATH, rec.burnPath)
         }
         writableDatabase.use { db ->
+            var existingId = -1L
+            var favorite = 0
+            var subtitlePath = ""
+            var processStatus = ""
+            var dubPath = ""
+            var voice = ""
+            var subtitleLang = ""
+            var burnPath = ""
+            var language = ""
+
+            db.query(
+                T_DOWNLOADS,
+                arrayOf(
+                    C_ID, C_FAVORITE, C_SUBTITLE_PATH, C_PROCESS_STATUS,
+                    C_DUB_PATH, C_VOICE, C_SUBTITLE_LANG, C_BURN_PATH, C_LANGUAGE
+                ),
+                "$C_VIDEO_ID = ?",
+                arrayOf(rec.videoId),
+                null, null, null
+            ).use { c ->
+                if (c.moveToFirst()) {
+                    existingId = c.getLong(0)
+                    favorite = c.getInt(1)
+                    subtitlePath = c.getString(2) ?: ""
+                    processStatus = c.getString(3) ?: ""
+                    dubPath = c.getString(4) ?: ""
+                    voice = c.getString(5) ?: ""
+                    subtitleLang = c.getString(6) ?: ""
+                    burnPath = c.getString(7) ?: ""
+                    language = c.getString(8) ?: ""
+                }
+            }
+
+            if (existingId > 0) {
+                // Giu du lieu xu ly cu; chi cap nhat khi ban ghi moi co gia tri.
+                cv.put(C_FAVORITE, if (rec.favorite != 0) rec.favorite else favorite)
+                cv.put(C_SUBTITLE_PATH, rec.subtitlePath.ifEmpty { subtitlePath })
+                cv.put(C_PROCESS_STATUS, rec.processStatus.ifEmpty { processStatus })
+                cv.put(C_DUB_PATH, rec.dubPath.ifEmpty { dubPath })
+                cv.put(C_VOICE, rec.voice.ifEmpty { voice })
+                cv.put(C_SUBTITLE_LANG, rec.subtitleLang.ifEmpty { subtitleLang })
+                cv.put(C_BURN_PATH, rec.burnPath.ifEmpty { burnPath })
+                cv.put(C_LANGUAGE, rec.language.ifEmpty { language })
+                db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(existingId.toString()))
+                return existingId
+            }
+
             return db.insertWithOnConflict(
                 T_DOWNLOADS, null, cv, SQLiteDatabase.CONFLICT_REPLACE
             )

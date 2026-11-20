@@ -9,6 +9,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.google.android.material.appbar.MaterialToolbar
+import java.io.File
 
 /**
  * Player xem video + phu de (Phase B+C).
@@ -30,6 +31,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_player)
         playerView = findViewById(R.id.playerView)
         player = ExoPlayer.Builder(this).build()
         playerView.player = player
@@ -43,7 +45,10 @@ class PlayerActivity : AppCompatActivity() {
             Uri.parse(path)
         }
         subtitleUri = getIntent().getParcelableExtra(EXTRA_SUBTITLE_URI)
-        val srtUri: Uri? = subtitleUri
+        // Chi gan phu de khi file .srt thuc su ton tai (tranh loi load subtitle).
+        val srtUri: Uri? = subtitleUri?.takeIf { uri ->
+            uri.scheme == "content" || File(uri.path ?: "").exists()
+        }
 
         val builder = MediaItem.Builder().setUri(videoUri)
         if (srtUri != null) {
@@ -60,7 +65,10 @@ class PlayerActivity : AppCompatActivity() {
         player.prepare()
         player.play()
 
-        findViewById<MaterialToolbar>(R.id.toolbar)?.setNavigationOnClickListener { onBack() }
+        findViewById<MaterialToolbar>(R.id.toolbar)?.apply {
+            title = getIntent().getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
+            setNavigationOnClickListener { onBack() }
+        }
     }
 
     private fun onBack() {

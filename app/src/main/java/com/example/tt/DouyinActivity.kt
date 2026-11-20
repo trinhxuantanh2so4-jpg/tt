@@ -42,6 +42,11 @@ class DouyinActivity : BaseDownloadActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) updateStartButton()
+    }
+
     private fun setupSubtitleOptions() {
         options.root.visibility = View.VISIBLE
 
