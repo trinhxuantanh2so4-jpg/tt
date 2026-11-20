@@ -34,6 +34,8 @@
 
 ### Việc còn lại (post-MVP)
 
+- **Ưu tiên tiếp theo: chuyển nguồn tải sang DTK API** — xem `docs/PLAN_API_DTK.md`
+  (tải trước; vietsub/thuyết minh giữ nguyên, phát triển sau).
 - Burn-in phụ đề cứng vào hình (`burn_path` đã có cột, chưa dùng).
 - Tự co giãn `speechRate` / fade khi cue dài hơn khoảng trống.
 - Màn chọn nguồn phát trong `PlayerActivity` (gốc / vietsub / thuyết minh).

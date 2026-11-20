@@ -31,4 +31,4 @@ App Android (Kotlin, Activity + ViewBinding, không dùng Fragment/Compose) đ�
 - Media3 Transformer cần `@androidx.annotation.OptIn(markerClass = [UnstableApi::class])`, và `Transformer.start(...)` phải gọi trên main thread.
 - APK giới hạn ABI `arm64-v8a` + `x86_64` (`abiFilters`); native libs Moonshine làm APK ~81 MB.
 - ML Kit cần Google Play services; TTS cần giọng hệ thống `vi-VN`. Khi thiếu, báo lỗi rõ ràng; không được crash.
-- Tài liệu đầy đủ: `README.md` (API, Firebase, SQLite) và `docs/PLAN_TIKTOK_DOUYIN.md` (lộ trình và trạng thái hiện tại).
+- Tài liệu đầy đủ: `README.md` (API, Firebase, SQLite), `docs/PLAN_TIKTOK_DOUYIN.md` (lộ trình/trạng thái), `docs/QA_CHECKLIST.md` (lỗi đã sửa), `docs/PLAN_API_DTK.md` (kế hoạch đổi nguồn tải sang DTK; ưu tiên tải, vietsub/thuyết minh làm sau).
