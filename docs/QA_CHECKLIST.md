@@ -21,15 +21,19 @@ Cập nhật: 2026-11-20.
 | 12 | 🟠 High | Nghe thuyết minh từ lịch sử/SubtitleActivity không có phụ đề chồng và không đổi bản trong player | `HistoryActivity.kt`, `PlayerActivity.kt` | Truyền `EXTRA_DUB_URI` + `EXTRA_START_VARIANT`; spinner Gốc/Vietsub/Thuyết minh trong player |
 | 13 | 🟡 Medium | `SubtitleAdapter` dùng `bindingAdapterPosition` trong `TextWatcher` có thể trượt vị trí | `SubtitleAdapter.kt` | Đổi sang `absoluteAdapterPosition` + kiểm tra `NO_POSITION` |
 | 14 | 🟢 Low | `item_subtitle_cue.xml` có 2 attribute trên cùng 1 dòng | `item_subtitle_cue.xml` | Tách dòng (aapt2 vẫn compiles nhưng khó đọc) |
+| 15 | 🔴 Critical | TextWatcher của ViewHolder tái sử dụng chạy trước `setText`, ghi đè nhầm cue → sửa câu xong mở lại mất | `SubtitleAdapter.kt`, `SubtitleActivity.kt` | Remove watcher cũ trước `setText`; callback dùng `cue.index` ổn định |
+| 16 | 🔴 Critical | Ghi `.srt` xong không đọc lại → lệch số cue; SRT truyền sang player bằng bare path → ExoPlayer không mở được | `SubtitleActivity.kt`, `HistoryActivity.kt`, `PlayerActivity.kt` | Verify roundtrip `SrtWriter`; truyền content Uri qua FileProvider + cấp quyền đọc |
+| 17 | 🔴 Critical | Không có giọng vi-VN → bấm tạo thuyết minh app tự thoát; lỗi TTS/Media3 là `Throwable` nên `catch (Exception)` không bắt | `NarrationProcessor.kt`, `SubtitleActivity.kt`, `TTApp.kt` | Precheck giọng có timeout 10s, `catch (Throwable)`, ghi crash log + toast lần mở tiếp |
+| 18 | 🟠 High | Badge lịch sử mất với bản cũ (có file nhưng SQLite trống); đổi giọng/âm nền mất khi TTS lỗi | `HistoryAdapter.kt`, `HistoryActivity.kt`, `DatabaseHelper.kt` | Badge fallback theo file + tự heal DB; lưu giọng/âm nền ngay lúc đổi |
 
 ## 2. Kiểm tra tự động
 
 | Hạng mục | Lệnh / cách kiểm tra | Trạng thái |
 |----------|----------------------|-----------|
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
-| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`3624bf7`, 9 test) |
-| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`3624bf7`, run `44687595777`) |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`81aa031`, run `44688108713`, 84,9 MB) |
+| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`3c58cab`, run `44711443774`; thêm test roundtrip sửa câu) |
+| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`3c58cab`, run `44711443774`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`3c58cab`, 84.929.976 byte) |
 
 > APK build lại ở mỗi push lên `main` nên **SHA256 thay đổi dù code không đổi**; luôn lấy SHA mới nhất
 > từ API release, không ghi cứng vào docs.

@@ -15,7 +15,7 @@
 | T5 | 🔴 | D: bấm tạo thuyết minh → app tự thoát | Luồng coroutine chỉ `catch (Exception)`; lỗi TTS/OOM/Transformer có thể là `Throwable`; không có precheck giọng nên người dùng bấm xác nhận rồi mới lỗi | Precheck giọng có timeout + message hướng dẫn; `catch (Throwable)` ở `generate()`/`runNarration()`/`play()`; log crash ra file | ✅ |
 | T6 | 🟠 | C: đổi giọng/âm nền không áp dụng | Giọng/âm nền chỉ lưu sau khi mux MP4 thành công; máy không có giọng → mux fail → mọi thay đổi mất | Lưu giọng vào SQLite và âm nền vào prefs **ngay khi đổi**, load lại lúc vào màn | ✅ |
 | T7 | 🟡 | Không có log khi crash | Không có crash handler | `TTApp` ghi stack trace ra `filesDir/crash_last.txt`, hiện toast tóm tắt lần mở tiếp theo | ✅ |
-| T8 | 🟢 | CI / tài liệu | — | `aapt2 compile`, unit test JVM, push `main`, CI xanh, cập nhật `QA_CHECKLIST` form mới | ☐ (chờ CI) |
+| T8 | 🟢 | CI / tài liệu | — | `aapt2 compile`, unit test JVM, push `main`, CI xanh, cập nhật `QA_CHECKLIST` form mới | ✅ (`3c58cab`, run `44711443774`; asset 84.929.976 byte) |
 
 ## Thứ tự triển khai
 
