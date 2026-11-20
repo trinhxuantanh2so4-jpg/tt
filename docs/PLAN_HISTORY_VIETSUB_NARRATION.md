@@ -46,7 +46,7 @@
 - [x] Unit test JVM thuần cho `SubtitleSourceCodec` (không import Android).
 - [x] `aapt2 compile --dir app/src/main/res` OK local.
 - [x] Cập nhật `README.md`, `docs/QA_CHECKLIST.md`, `docs/PLAN_API_DTK.md`, `docs/PLAN_TIKTOK_DOUYIN.md`.
-- [x] Push `main`, CI xanh (`3624bf7`, run `44687595777`), release `v1.0.0/app-debug.apk` được ghi đè (84,9 MB, SHA256 `24eb24666a90640522cc47a05b6e369eab96c59eb09ae850295d42549c8bf6eb`).
+- [x] Push `main`, CI xanh (`3624bf7` → docs `81aa031`, run `44688108713`), release `v1.0.0/app-debug.apk` được ghi đè (84,9 MB; SHA đổi mỗi lần build lại, xem API release).
 
 ---
 

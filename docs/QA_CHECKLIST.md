@@ -29,7 +29,10 @@ Cập nhật: 2026-11-20.
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
 | Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`3624bf7`, 9 test) |
 | Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`3624bf7`, run `44687595777`) |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`3624bf7`, 84,9 MB, SHA256 `24eb24666a90640522cc47a05b6e369eab96c59eb09ae850295d42549c8bf6eb`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`81aa031`, run `44688108713`, 84,9 MB) |
+
+> APK build lại ở mỗi push lên `main` nên **SHA256 thay đổi dù code không đổi**; luôn lấy SHA mới nhất
+> từ API release, không ghi cứng vào docs.
 
 Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`,
 `WavIoTest`, `NarrationTimelineTest`, `DtkMapperTest`, `DtkErrorTest`, `SubtitleSourceCodecTest`.
