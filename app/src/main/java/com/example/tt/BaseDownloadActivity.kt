@@ -233,7 +233,9 @@ abstract class BaseDownloadActivity : AppCompatActivity() {
         showLoading(true)
         lifecycleScope.launch {
             try {
-                val info = VideoResolver.resolve(url)
+                // Truuyen nguyên text chia sẻ cho DTK /parse (co caption Tiếng Trung);
+                // UrlParser bên trong sẽ tự tách link cho provider cũ.
+                val info = VideoResolver.resolve(raw)
                 current = info.record
                 currentDuration = info.duration
                 form.progressDownload.progress = 0
@@ -356,19 +358,29 @@ abstract class BaseDownloadActivity : AppCompatActivity() {
 
         downloadJob = lifecycleScope.launch {
             val folder = folderName(rec.platform)
+            // CDN TikTok/Douyin thường chặn request không có Referer. Nếu DTK trả
+            // mirror đã ký thì VideoDownloader sẽ tự thử lại khi gặp 403/404.
+            val headers = mapOf(
+                "Referer" to when (rec.platform) {
+                    VideoPlatform.DOUYIN -> "https://www.douyin.com/"
+                    VideoPlatform.TIKTOK -> "https://www.tiktok.com/"
+                }
+            )
             try {
                 val path = if (target != null) {
                     VideoDownloader.downloadToUri(
                         context = this@BaseDownloadActivity,
                         url = rec.downloadUrl,
-                        target = target
+                        target = target,
+                        headers = headers
                     ) { done, total -> onProgress(done, total) }
                 } else {
                     VideoDownloader.download(
                         context = this@BaseDownloadActivity,
                         url = rec.downloadUrl,
                         fileName = "${fileBaseName(rec)}.mp4",
-                        folder = folder
+                        folder = folder,
+                        headers = headers
                     ) { done, total -> onProgress(done, total) }
                 }
 

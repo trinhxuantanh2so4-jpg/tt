@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.example.tt.network.dtk.DtkStreamFallbacks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -27,11 +28,16 @@ object VideoDownloader {
 
     private val client = OkHttpClient()
 
+    private const val USER_AGENT =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+
     /**
      * Tai ve vi tri mac dinh (Download/<folder> hoac thu muc app).
      *
      * @param fileName ten file (vd: tiktok_123.mp4)
      * @param folder ten thu muc con trong Download ("TikTok" / "Douyin")
+     * @param headers header bo sung (vd Referer theo nen tang); de trong tu suy theo host
      * @param onProgress (da tai, tong) - cap nhat % cho UI
      * @return duong dan file da luu
      */
@@ -40,10 +46,11 @@ object VideoDownloader {
         url: String,
         fileName: String,
         folder: String = "TikTok",
+        headers: Map<String, String> = emptyMap(),
         onProgress: (Long, Long) -> Unit
     ): String = withContext(Dispatchers.IO) {
         val safeFolder = safeName(folder)
-        fetch(url) { input, total ->
+        fetch(url, headers) { input, total ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 // Android 10+: ghi qua MediaStore vao Download/<folder>
                 val name = safeName(fileName)
@@ -86,9 +93,10 @@ object VideoDownloader {
         context: Context,
         url: String,
         target: Uri,
+        headers: Map<String, String> = emptyMap(),
         onProgress: (Long, Long) -> Unit
     ): String = withContext(Dispatchers.IO) {
-        fetch(url) { input, total ->
+        fetch(url, headers) { input, total ->
             val out = context.contentResolver.openOutputStream(target)
                 ?: throw IllegalStateException("Khong mo duoc file da chon")
             out.use { copyWithProgress(input, out, total, onProgress) }
@@ -96,18 +104,52 @@ object VideoDownloader {
         }
     }
 
-    /** Goi API va tra InputStream cua video cho ham ghi dich. */
+    /**
+     * Goi API va tra InputStream cua video cho ham ghi dich.
+     * URL CDN da ky cua DTK co the het han (403/404) -> thu lan luot cac mirror
+     * da luu luc resolve. Cac loi khac (500, 302 den trang login...) van bao ngay.
+     */
     private suspend fun fetch(
         url: String,
+        headers: Map<String, String>,
         sink: suspend (InputStream, Long) -> String
     ): String {
-        val req = Request.Builder().url(url).build()
-        client.newCall(req).execute().use { resp ->
-            if (!resp.isSuccessful) throw IllegalStateException("Loi tai: HTTP ${resp.code}")
-            val body = resp.body ?: throw IllegalStateException("Khong co du lieu")
-            val total = body.contentLength()
-            return sink(body.byteStream(), total)
+        val candidates = listOf(url) + DtkStreamFallbacks.alternatesFor(url)
+        var lastCode = 0
+        for (candidate in candidates) {
+            coroutineContext.ensureActive()
+            val req = Request.Builder()
+                .url(candidate)
+                .apply { defaultHeaders(candidate, headers).forEach { header(it.key, it.value) } }
+                .build()
+            client.newCall(req).execute().use { resp ->
+                if (resp.code == 403 || resp.code == 404) {
+                    lastCode = resp.code
+                    return@use
+                }
+                if (!resp.isSuccessful) throw IllegalStateException("Loi tai: HTTP ${resp.code}")
+                val body = resp.body ?: throw IllegalStateException("Khong co du lieu")
+                val total = body.contentLength()
+                return sink(body.byteStream(), total)
+            }
         }
+        throw IllegalStateException("Khong tai duoc video (HTTP $lastCode)")
+    }
+
+    /** Referer/User-Agent mac dinh theo host CDN; header truyen vao co uu tien. */
+    private fun defaultHeaders(url: String, extra: Map<String, String>): Map<String, String> {
+        val result = linkedMapOf<String, String>()
+        val host = runCatching { java.net.URL(url).host.lowercase() }.getOrNull().orEmpty()
+        val referer = when {
+            host.contains("douyin") || host.contains("ixigua") || host.contains("snssdk") ||
+                host.contains("amemv") || host.contains("byteimg") -> "https://www.douyin.com/"
+            host.contains("tiktok") || host.contains("musical") -> "https://www.tiktok.com/"
+            else -> null
+        }
+        if (referer != null && !extra.containsKey("Referer")) result["Referer"] = referer
+        result["User-Agent"] = USER_AGENT
+        result.putAll(extra)
+        return result
     }
 
     private fun safeName(fileName: String): String =

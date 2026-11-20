@@ -212,11 +212,27 @@ phải dừng được poll), read timeout OkHttp ≥ 35s để không cắt `?w
 
 | Phase | Việc | Ước lượng | Xong khi |
 |-------|------|-----------|----------|
-| **A. Client + mapping** | `DtkApi/Models/Mapper/Resolver/Exception`, unit test fixture JSON thật, chưa nối vào UI | 0.5 ngày | `gradle testDebugUnitTest` xanh, mapper đúng 6 link mẫu |
-| **B. Cấu hình + nối vào** | `ApiSettingsActivity`, `menu_main`, `VideoResolver` chọn provider + fallback | 0.5–1 ngày | Có key → analyze dùng DTK; không có key → app chạy y hệt cũ |
-| **C. Tải & QA** | Header `Referer` nếu CDN 403, xử lý link rút gọn/caption, checklist tay, CI xanh | 0.5 ngày | 3 link TikTok + 3 link Douyin tải được, CI xanh, APK release cập nhật |
+| **A. Client + mapping** ✅ | `DtkApi/Models/Mapper/Resolver/Exception`, unit test fixture JSON thật, chưa nối vào UI | 0.5 ngày | `gradle testDebugUnitTest` xanh, mapper đúng 6 link mẫu |
+| **B. Cấu hình + nối vào** ✅ | `ApiSettingsActivity`, `menu_main`, `VideoResolver` chọn provider + fallback | 0.5–1 ngày | Có key → analyze dùng DTK; không có key → app chạy y hệt cũ |
+| **C. Tải & QA** ✅ code / ⏳ QA máy thật | Header `Referer` nếu CDN 403, xử lý link rút gọn/caption, checklist tay, CI xanh | 0.5 ngày | 3 link TikTok + 3 link Douyin tải được, CI xanh, APK release cập nhật |
 | **D. Dọn dẹp (sau)** | Khi DTK chạy ổn định: bỏ `tikwm`/`iesdouyin`, bỏ fallback, cập nhật README | — | Chưa làm |
 | **E. Vietsub & thuyết minh (sau nữa)** | Chỉ xem lại nếu có lý do liên quan nguồn audio; không nằm trong đợt này | — | Chưa làm |
+
+### 7.1 Trạng thái code (2026-11-20)
+
+Đã triển khai xong phần code của Phase A–C:
+
+- Mới: `network/dtk/{DtkModels,DtkException,DtkConfig,DtkApi,DtkStreamFallbacks,DtkMapper,DtkResolver}.kt`.
+- Mới: `ui/ApiSettingsActivity.kt` + `res/layout/activity_api_settings.xml`; item menu
+  `action_api_settings` trên toolbar của cả 2 tab; khai báo trong `AndroidManifest.xml`.
+- Sửa: `VideoResolver.kt` (chọn DTK khi có config, fallback chỉ khi lỗi hạ tầng),
+  `TTApp.kt` (`DtkConfig.init`), `BaseDownloadActivity.kt` (truyền text gốc cho `/parse`
+  và gửi `Referer` theo nền tảng), `VideoDownloader.kt` (thử mirror CDN khi 403/404).
+- Test JVM: `DtkMapperTest`, `DtkErrorTest`.
+- **Không đổi:** `DatabaseHelper` (vẫn version 3), `SubtitleActivity`, `Narration*`,
+  `PlayerActivity`, `HistoryActivity`, giao diện 2 tab.
+
+Chưa làm được ở local: chạy Gradle (không JDK/SDK) và QA 8 ca trên máy thật/có key DTK.
 
 ---
 
@@ -259,11 +275,12 @@ Không truyền key vào CI.
 ## 10. Tiêu chí hoàn thành đợt này
 
 - [x] Có plan này, phân tách rõ "tải trước — vietsub/thuyết minh sau".
-- [ ] `DtkResolver` lấy được MP4 không logo cho cả 2 nền tảng qua 1 API.
-- [ ] Không có key nào trong source/APK; config nhập lúc chạy.
-- [ ] Không cấu hình → app chạy y hệt bản `fbe8ba3`.
-- [ ] Không đụng code vietsub/thuyết minh/DB/player.
+- [x] Code `DtkResolver` lấy MP4 không logo cho cả 2 nền tảng qua 1 API (⏳ cần thử bằng key thật).
+- [x] Không có key nào trong source/APK; config nhập lúc chạy (`dtk_prefs`).
+- [x] Không cấu hình → app chạy y hệt bản `fbe8ba3` (mặc định `DtkConfig.enabled = false`).
+- [x] Không đụng code vietsub/thuyết minh/DB/player.
 - [ ] CI xanh, `app-debug.apk` trên `v1.0.0` được cập nhật.
+- [ ] QA 8 ca trên máy thật có server DTK + key read-only.
 
 ## 11. Phạm vi không làm trong đợt này
 

@@ -6,4 +6,8 @@
         android:icon="@drawable/ic_whatshot"
         android:title="@string/nav_trending"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/action_api_settings"
+        android:title="@string/action_api_settings"
+        app:showAsAction="never" />
 </menu>

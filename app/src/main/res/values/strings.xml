@@ -167,6 +167,28 @@
     <string name="dialog_delete_srt_title">Xoá file phụ đề?</string>
     <string name="dialog_delete_srt_message">File .srt của video này sẽ bị xoá. Bạn có chắc không?</string>
 
+    <!-- ===== Nguon tai video (DTK API) ===== -->
+    <string name="action_api_settings">Nguồn tải video</string>
+    <string name="api_settings_title">Nguồn tải video</string>
+    <string name="api_settings_subtitle">Tuỳ chọn · DTK API</string>
+    <string name="api_settings_intro">Nếu cấu hình máy chủ DTK, ứng dụng sẽ tải video qua API này trước. Để trống thì ứng dụng dùng nguồn cũ như bình thường.</string>
+    <string name="api_settings_base_url">Base URL (https://…)</string>
+    <string name="api_settings_api_key">API key</string>
+    <string name="api_settings_scope_note">Chỉ cấp các quyền douyin:read và tiktok:read. Key được lưu trên máy, không gửi kèm ứng dụng.</string>
+    <string name="api_settings_test">Kiểm tra kết nối</string>
+    <string name="api_settings_save">Lưu cấu hình</string>
+    <string name="api_settings_clear">Xoá cấu hình</string>
+    <string name="api_settings_saved">Đã lưu cấu hình. Ấn "Kiểm tra kết nối" để thử ngay.</string>
+    <string name="api_settings_cleared">Đã xoá cấu hình, ứng dụng dùng nguồn tải cũ.</string>
+    <string name="api_settings_testing">Đang kiểm tra…</string>
+    <string name="api_settings_ok">Kết nối OK · %1$s · quyền: %2$s · giới hạn: %3$s lần/phút</string>
+    <string name="api_settings_fail">Không kết nối được: %1$s</string>
+    <string name="api_settings_scope_warning">Key đang dùng thiếu một trong các quyền douyin:read / tiktok:read</string>
+    <string name="api_settings_current">Đang dùng: %1$s</string>
+    <string name="api_settings_missing">Nhập đầy đủ Base URL và API key</string>
+    <string name="api_settings_https_only">Base URL phải bắt đầu bằng https://</string>
+    <string name="api_settings_footer">Base URL phải dùng HTTPS. Với self-host hãy đặt reverse proxy TLS trước cổng 8000.</string>
+
     <!-- ===== Chung ===== -->
     <string name="back">Quay lại</string>
 

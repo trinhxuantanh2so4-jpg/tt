@@ -33,11 +33,16 @@ class DouyinActivity : BaseDownloadActivity() {
         setupSubtitleOptions()
 
         binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_trending) {
-                startActivity(Intent(this, TrendingActivity::class.java))
-                true
-            } else {
-                false
+            when (item.itemId) {
+                R.id.action_trending -> {
+                    startActivity(Intent(this, TrendingActivity::class.java))
+                    true
+                }
+                R.id.action_api_settings -> {
+                    startActivity(Intent(this, com.example.tt.ui.ApiSettingsActivity::class.java))
+                    true
+                }
+                else -> false
             }
         }
     }

@@ -25,7 +25,11 @@ Cập nhật: 2026-11-20.
 | Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`7444501`) |
 | Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`7444501`) |
 
-Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`, `WavIoTest`, `NarrationTimelineTest`.
+Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`,
+`WavIoTest`, `NarrationTimelineTest`, `DtkMapperTest`, `DtkErrorTest`.
+
+> trạng thái các dòng "✅ pass (`7444501`)" ở bảng trên là của bản trước khi đổi nguồn tải
+> sang DTK. Kết quả của commit DTK được ghi nhận riêng trong `docs/PLAN_API_DTK.md` §7.1.
 
 ## 3. Checklist tay trên máy thật (chưa chạy trong CI)
 
@@ -49,3 +53,17 @@ Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `Cue
 - Burn-in phụ đề cứng chưa làm (`burn_path` mới có cột).
 - `HistoryActivity` mở video gốc bằng trình phát ngoài, chưa có màn chọn Gốc / Vietsub / Thuyết minh.
 - ML Kit cần Google Play services; TTS cần giọng hệ thống `vi-VN`.
+
+## 5. Checklist nguồn tải DTK (mới, chạy khi có server + key)
+
+Xem chi tiết 8 ca trong `docs/PLAN_API_DTK.md` §8. Những ca ưu tiên:
+
+- [ ] Menu toolbar → **Nguồn tải video**: để trống → 2 tab tải y hệt bản cũ.
+- [ ] Nhập Base URL `https://` + key, bấm **Kiểm tra kết nối** → hiện scopes
+      `douyin:read`, `tiktok:read` và `rate_limit_per_min`.
+- [ ] Dán nguyên caption tiếng Trung có `https://v.douyin.com/...` → tải được MP4 không logo.
+- [ ] Link `vm.tiktok.com` → tải được MP4 không logo.
+- [ ] Album ảnh / video riêng tư → báo đúng lỗi, **không** fallback vô ích.
+- [ ] Key sai / server tắt → báo lỗi rõ; xoá config → nguồn cũ vẫn tải được.
+- [ ] Bấm **Huỷ** lúc đang poll task → coroutine dừng ngay.
+- [ ] CDN trả 403 → `VideoDownloader` thử mirror từ `media.streams[].urls`.
