@@ -29,16 +29,16 @@
 | Cache TTS trong `filesDir/tts` | TTS ghi file tạm trong `cacheDir` rồi xoá ngay; WAV/MP4 cuối ở `filesDir/narration/{id}.wav` và `{id}.mp4`. |
 | Tự tăng `speechRate` khi câu dài hơn khoảng trống | Chưa làm; clip được đặt đúng `startMs`, phần dư chồng nhẹ lên cue sau, không fade, chuẩn hoá đỉnh ≤ 0.9. |
 | `PlayerActivity` chọn nguồn Gốc / Vietsub / Thuyết minh | Không đổi `PlayerActivity`; nơi gọi truyền `EXTRA_VIDEO_URI` + `EXTRA_SUBTITLE_URI` tương ứng. |
-| `ProfileActivity` chọn giọng đọc, xoá model | Chưa có; giọng chọn ngay ở tab Douyin. |
+| `ProfileActivity` chọn giọng đọc, xoá model | Chưa có; giọng chọn ở tab Douyin và trong màn sửa phụ đề. |
 | APK ~127 MB | ~81 MB nhờ `abiFilters` `arm64-v8a` + `x86_64`. |
 
 ### Việc còn lại (post-MVP)
 
-- **Ưu tiên tiếp theo: chuyển nguồn tải sang DTK API** — xem `docs/PLAN_API_DTK.md`
-  (tải trước; vietsub/thuyết minh giữ nguyên, phát triển sau).
+- [x] Chuyển nguồn tải sang DTK API — `docs/PLAN_API_DTK.md` (Phase A–C xong, cần QA key thật).
+- [x] Màn chọn nguồn phát trong `PlayerActivity` + lịch sử sửa được vietsub/thuyết minh —
+  `docs/PLAN_HISTORY_VIETSUB_NARRATION.md`.
 - Burn-in phụ đề cứng vào hình (`burn_path` đã có cột, chưa dùng).
 - Tự co giãn `speechRate` / fade khi cue dài hơn khoảng trống.
-- Màn chọn nguồn phát trong `PlayerActivity` (gốc / vietsub / thuyết minh).
 - Tuỳ chọn Moonshine TTS thay TTS hệ thống.
 - Cấu hình giọng đọc + xoá model AI trong `ProfileActivity`.
 

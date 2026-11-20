@@ -22,10 +22,10 @@ App trình diễn **3 kỹ thuật chính**:
 | **MainActivity** | Tab **TikTok**: chỉ nhận link TikTok → gọi API tikwm.com → tải video không logo; link Douyin tự chuyển sang tab Douyin; **chọn nơi lưu** bằng trình chọn tệp; tiến độ % + tốc độ + nút Huỷ |
 | **DouyinActivity** | Tab **Douyin**: tải video Douyin không logo (parse iesdouyin, không dùng dịch vụ trung gian) + tuỳ chọn **vietsub & thuyết minh** (Moonshine ASR → ML Kit dịch → .srt); link TikTok tự chuyển sang tab TikTok |
 | **TrendingActivity** | Màn **Thịnh hành**: grid 2 cột video hot TikTok, kéo xuống để làm mới, nhấn để chuẩn bị tải (mở từ icon 🔥 trên toolbar của tab TikTok/Douyin) |
-| **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận, mở lại video |
+| **HistoryActivity** | Tab **Lịch sử** (SQLite): tìm kiếm, lọc yêu thích, vuốt để xoá (có Hoàn tác), xoá hết có xác nhận; nhấn card chọn **Gốc / Có vietsub / Thuyết minh**, nút `⋮` để sửa vietsub/thuyết minh hoặc xoá bản xử lý |
 | **ProfileActivity** | Tab **Hồ sơ**: profile Firestore + thống kê dung lượng từ SQLite, đổi tên, đăng xuất có xác nhận |
-| **SubtitleActivity** | Màn phụ **Tạo phụ đề**: chọn ngôn ngữ video (auto theo nền tảng), chạy pipeline ASR + dịch, sửa từng câu phụ đề tiếng Việt, lưu file `.srt`, mở video có phụ đề |
-| **PlayerActivity** | Màn phụ **Xem video có phụ đề**: ExoPlayer + subtitle track SRT (qua MediaItem.SubtitleConfiguration) |
+| **SubtitleActivity** | Màn phụ **Tạo/sửa phụ đề**: chọn ngôn ngữ video, chạy pipeline ASR + dịch, sửa từng câu (vẫn thấy lời gốc), đổi giọng/âm nền thuyết minh, lưu `.srt`, tạo lại MP4 thuyết minh |
+| **PlayerActivity** | Màn phụ **Xem video**: ExoPlayer + spinner đổi bản **Gốc / Có phụ đề / Thuyết minh**; SRT gắn qua `MediaItem.SubtitleConfiguration` |
 
 4 màn hình chính (TikTok · Douyin · Lịch sử · Hồ sơ) dùng chung **BottomNavigationView** và **MaterialToolbar**; màn **Thịnh hành** mở từ icon 🔥 trên toolbar và cũng có bottom nav để chuyển tab.
 
@@ -35,7 +35,7 @@ App trình diễn **3 kỹ thuật chính**:
 
 - Vào menu `⋮` → **Nguồn tải video (nâng cao)** → nhập Base URL `https://...` + API key → **Kiểm tra kết nối** → **Lưu cấu hình**.
 - Chỉ cấp 2 quyền: `douyin:read` + `tiktok:read`. Key lưu trong `dtk_prefs` trên máy, **không nhúng vào APK/CI**, có thể xoá bằng nút **Xoá cấu hình**.
-- Pipeline vietsub/thuyết minh, SQLite, player và lịch sử **không đổi**.
+- DTK chỉ đổi khâu lấy link; pipeline vietsub/thuyết minh không nằm trong đợt này (xem mục ngay bên dưới).
 
 **Lấy key để test nhanh (demo công khai):**
 
@@ -46,6 +46,15 @@ App trình diễn **3 kỹ thuật chính**:
 > Demo là instance dùng chung, giới hạn 30 request/10 giây, có thể reset hoặc tắt bất kỳ lúc nào — **chỉ để QA, không dùng làm dịch vụ production**. Không chia sẻ key demo công khai.
 
 **Dùng thật:** tự host theo [`docs/PLAN_API_DTK.md`](docs/PLAN_API_DTK.md) §5 (Docker Compose + reverse proxy TLS), tạo key read-only trong Console. Endpoint, mapping, fallback và checklist QA nằm trong file đó.
+
+## Lịch sử · Vietsub & thuyết minh 🎬
+
+Chi tiết: [`docs/PLAN_HISTORY_VIETSUB_NARRATION.md`](docs/PLAN_HISTORY_VIETSUB_NARRATION.md).
+
+- **Nhấn vào card**: chọn bản phát `Gốc / Có phụ đề tiếng Việt / Thuyết minh` (nếu chỉ có video gốc thì mở thẳng). Trong player cũng có spinner để đổi bản ngay không cần quay lại.
+- **Nút `⋮` trên card (hoặc nhấn giữ)**: `Sửa vietsub`, `Tạo/Tạo lại thuyết minh`, `Xem có phụ đề`, `Nghe thuyết minh`, `Xoá bản xử lý`. Việc tạo thuyết minh **luôn cần bấm nút** — app không tự chạy TTS sau khi tải.
+- Trong màn sửa: giọng đọc và âm nền (`Giữ âm gốc nhỏ 20%` / `Chỉ thuyết minh`) đổi được ngay; câu gốc được lưu riêng nên mở lại `.srt` vẫn thấy để so sánh. Lưu xong là lịch sử và player dùng bản mới; badge `Vietsub` / `Thuyết minh` cập nhật theo SQLite (vẫn giữ DB version 3).
+- `Xoá bản xử lý` chỉ xoá `.srt`, câu gốc và WAV/MP4 thuyết minh — **không xoá video gốc**.
 
 ---
 

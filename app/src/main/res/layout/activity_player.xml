@@ -15,6 +15,26 @@
         app:title="@string/subtitle_section_title"
         app:titleTextColor="@color/text_primary" />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilSource"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_16"
+        android:layout_marginTop="@dimen/space_8"
+        android:layout_marginEnd="@dimen/space_16"
+        android:hint="@string/player_source_prompt"
+        app:boxStrokeColor="@color/accent"
+        app:hintTextColor="@color/accent">
+
+        <Spinner
+            android:id="@+id/spinnerSource"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:popupBackground="@color/surface"
+            android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -28,4 +48,12 @@
             android:layout_height="match_parent"
             app:use_controller="true" />
     </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_bottom" />
 </LinearLayout>

@@ -62,7 +62,11 @@ class SubtitleProcessor(private val context: Context) {
 
         report(Progress("Đang tạo file phụ đề…", 90))
         val cues = CueBuilder.build(lines, translations)
-        val path = withContext(Dispatchers.IO) { repository.save(record.id, SrtWriter.write(cues)) }
+        val path = withContext(Dispatchers.IO) {
+            repository.save(record.id, SrtWriter.write(cues))
+            repository.saveSources(record.id, cues.map { it.source })
+            repository.pathFor(record.id)
+        }
         coroutineContext.ensureActive()
 
         report(Progress("Hoàn tất", 100))

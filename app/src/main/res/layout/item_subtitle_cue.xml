@@ -48,7 +48,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_8"
             android:hint="@string/subtitle_edit_hint"
-            app:boxStrokeColor="@color/accent"            app:hintTextColor="@color/accent">
+            app:boxStrokeColor="@color/accent"
+            app:hintTextColor="@color/accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etCueText"

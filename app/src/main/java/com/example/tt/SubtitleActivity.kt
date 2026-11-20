@@ -23,6 +23,7 @@ import com.example.tt.subtitle.SubtitleRepository
 import com.example.tt.subtitle.TtsEngine
 import com.example.tt.ui.MediaUri
 import com.example.tt.ui.SubtitleAdapter
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -90,35 +91,38 @@ class SubtitleActivity : AppCompatActivity() {
         db = DatabaseHelper(this)
 
         recordId = intent.getLongExtra(EXTRA_RECORD_ID, 0L)
-        withNarration = intent.getBooleanExtra(EXTRA_WITH_NARRATION, false)
-        keepBackground = intent.getBooleanExtra(EXTRA_KEEP_BACKGROUND, true)
-        autoRun = intent.getBooleanExtra(EXTRA_AUTO_RUN, false)
-        voiceLabel = intent.getStringExtra(EXTRA_VOICE_LABEL)
-            ?.takeIf { it.isNotBlank() }
-            ?: TtsEngine.VoiceOption.DEFAULT.label
-
         if (recordId == 0L) {
             toast(getString(R.string.toast_subtitle_missing))
             finish()
             return
         }
 
-        record = db.getDownload(recordId)
-        if (record == null) {
+        val loaded = db.getDownload(recordId)
+        if (loaded == null) {
             toast(getString(R.string.toast_subtitle_missing))
             finish()
             return
         }
-        binding.spinnerSubtitleLanguage.setSelection(
-            if (record?.platform == VideoPlatform.DOUYIN) 0 else 1
-        )
-        // setSelection truoc khi gan listener co the khong phat onItemSelected
-        // -> gan gia tri mac dinh tuong ung de TikTok khong bi nham "Tieng Trung".
-        selectedSourceLanguage = if (record?.platform == VideoPlatform.DOUYIN) "zh" else "en"
+        record = loaded
+
+        withNarration = intent.getBooleanExtra(EXTRA_WITH_NARRATION, false)
+        keepBackground = intent.getBooleanExtra(EXTRA_KEEP_BACKGROUND, true)
+        autoRun = intent.getBooleanExtra(EXTRA_AUTO_RUN, false)
+        voiceLabel = intent.getStringExtra(EXTRA_VOICE_LABEL)
+            ?.takeIf { it.isNotBlank() }
+            ?: loaded.voice.takeIf { it.isNotBlank() }
+            ?: TtsEngine.VoiceOption.DEFAULT.label
+
+        // Dia chi ban ghi duoc luu tu lan truoc; neu chua co thi mac dinh theo nen tang.
+        val initialLanguage = loaded.subtitleLang.takeIf { it.isNotBlank() }
+            ?: if (loaded.platform == VideoPlatform.DOUYIN) "zh" else "en"
+        selectedSourceLanguage = initialLanguage
+        binding.spinnerSubtitleLanguage.setSelection(languageIndex(initialLanguage))
 
         setupToolbar()
         setupCuesRecycler()
         setupLanguageListeners()
+        setupNarrationControls()
         binding.btnGenerateSubtitle.setOnClickListener { generate() }
         binding.btnSaveSrt.setOnClickListener { saveSrt() }
         binding.btnOpenPlayer.setOnClickListener { openPlayer() }
@@ -129,8 +133,10 @@ class SubtitleActivity : AppCompatActivity() {
 
         binding.tvSubtitleStatus.text = if (withNarration) {
             getString(R.string.narration_progress_check_tts)
-        } else {
+        } else if (cues.isEmpty()) {
             getString(R.string.subtitle_cues_empty)
+        } else {
+            getString(R.string.subtitle_ready)
         }
 
         // Tab Douyin bam "Bat dau xu ly" -> chay luon, khong bat nguoi dung bam them.
@@ -177,6 +183,43 @@ class SubtitleActivity : AppCompatActivity() {
         )
     }
 
+    private fun setupNarrationControls() {
+        binding.spinnerVoice.setSelection(voiceIndex(voiceLabel))
+        voiceLabel = binding.spinnerVoice.selectedItem?.toString()?.takeIf { it.isNotBlank() }
+            ?: TtsEngine.VoiceOption.DEFAULT.label
+        binding.spinnerVoice.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>?,
+                    view: android.view.View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    voiceLabel = binding.spinnerVoice.selectedItem?.toString() ?: voiceLabel
+                }
+
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            }
+
+        binding.rgBackground.check(
+            if (keepBackground) R.id.rbKeepBackground else R.id.rbNarrationOnly
+        )
+        binding.rgBackground.setOnCheckedChangeListener { _, checkedId ->
+            keepBackground = checkedId != R.id.rbNarrationOnly
+        }
+    }
+
+    private fun languageIndex(code: String): Int = when (code) {
+        "en" -> 1
+        "vi" -> 2
+        else -> 0
+    }
+
+    private fun voiceIndex(label: String): Int {
+        val labels = resources.getStringArray(R.array.voice_options)
+        return labels.indexOfFirst { it.equals(label, ignoreCase = true) }.coerceAtLeast(0)
+    }
+
     private var selectedSourceLanguage: String = "zh"
 
     private fun refreshFromRecord() {
@@ -186,16 +229,22 @@ class SubtitleActivity : AppCompatActivity() {
         binding.tvSubtitleSource.text = if (rec.sourceUrl.isNotEmpty()) rec.sourceUrl else rec.downloadUrl
 
         val saved = runCatching { repository.read(recordId) }.getOrNull()
+        val sources = runCatching { repository.readSources(recordId) }.getOrDefault(emptyList())
         cues.clear()
         if (!saved.isNullOrEmpty()) {
-            cues.addAll(SrtWriter.parse(saved))
+            SrtWriter.parse(saved).forEachIndexed { index, cue ->
+                cues.add(if (index < sources.size) cue.copy(source = sources[index]) else cue)
+            }
         }
 
         binding.rvCues.visibility = if (cues.isEmpty()) View.GONE else View.VISIBLE
         binding.cardCues.visibility = if (cues.isEmpty()) View.GONE else View.VISIBLE
         subtitleAdapter.submitList(cues.toList())
-        binding.tvSubtitleStatus.text = saved?.let { "Đã có sẵn phụ đề" }
-            ?: getString(R.string.subtitle_cues_empty)
+        binding.tvSubtitleStatus.text = if (saved.isNullOrEmpty()) {
+            getString(R.string.subtitle_cues_empty)
+        } else {
+            getString(R.string.subtitle_ready)
+        }
         binding.pbSubtitle.visibility = View.GONE
         binding.pbSubtitle.isIndeterminate = true
         binding.btnGenerateSubtitle.isEnabled = true
@@ -214,6 +263,9 @@ class SubtitleActivity : AppCompatActivity() {
                     binding.pbSubtitle.isIndeterminate = false
                     binding.pbSubtitle.progress = progress.percent
                     binding.tvSubtitleStatus.text = progress.message
+                }
+                withContext(Dispatchers.IO) {
+                    db.updateSubtitle(recordId, path, "done", "vi", source)
                 }
                 toast(getString(R.string.toast_subtitle_created))
                 refreshFromRecord()
@@ -239,6 +291,21 @@ class SubtitleActivity : AppCompatActivity() {
             toast(getString(R.string.subtitle_cues_empty))
             return
         }
+        // Auto-run tu nut "Bat dau xu ly" khong can hoi lai; mo tu lich sử thi co xac nhan.
+        if (rec.dubPath.isNotEmpty() && !autoRun) {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_replace_narration_title)
+                .setMessage(R.string.dialog_replace_narration_message)
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .setPositiveButton(R.string.dialog_replace) { _, _ -> runNarration(cues.toList()) }
+                .show()
+        } else {
+            runNarration(cues.toList())
+        }
+    }
+
+    private fun runNarration(cueSnapshot: List<SubtitleCue>) {
+        val rec = record ?: return
         val option = TtsEngine.VoiceOption.fromLabel(voiceLabel)
         binding.btnCreateNarration.isEnabled = false
         binding.btnGenerateSubtitle.isEnabled = false
@@ -247,9 +314,11 @@ class SubtitleActivity : AppCompatActivity() {
                 binding.pbSubtitle.visibility = View.VISIBLE
                 binding.pbSubtitle.isIndeterminate = false
                 binding.pbSubtitle.progress = 0
+                // Luu phu de da sua truoc de MP4 khong lech text so voi .srt.
+                persistSubtitleNow(selectedSourceLanguage)
                 val result = narrationProcessor.process(
                     record = rec,
-                    cues = cues.toList(),
+                    cues = cueSnapshot,
                     voice = option,
                     keepBackground = keepBackground
                 ) { progress ->
@@ -275,14 +344,26 @@ class SubtitleActivity : AppCompatActivity() {
         }
     }
 
+    /** Ghi .srt + cau goc va cap nhat SQLite de lich sử biet ban xu ly co that. */
+    private suspend fun persistSubtitleNow(sourceLanguage: String) {
+        val content = withContext(Dispatchers.Default) { SrtWriter.write(cues.toList()) }
+        val path = withContext(Dispatchers.IO) {
+            processor.repository.save(recordId, content)
+            processor.repository.saveSources(recordId, cues.map { it.source })
+            processor.repository.pathFor(recordId)
+        }
+        withContext(Dispatchers.IO) {
+            db.updateSubtitle(recordId, path, "done", "vi", sourceLanguage)
+        }
+    }
+
     private fun saveSrt() {
         if (cues.isEmpty()) {
             toast(getString(R.string.toast_subtitle_missing))
             return
         }
         lifecycleScope.launch {
-            val content = withContext(Dispatchers.Default) { SrtWriter.write(cues.toList()) }
-            processor.repository.save(recordId, content)
+            persistSubtitleNow(selectedSourceLanguage)
             toast(getString(R.string.toast_subtitle_created))
             refreshFromRecord()
         }
@@ -298,23 +379,32 @@ class SubtitleActivity : AppCompatActivity() {
             if (File(srtPath).exists()) {
                 putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
             }
+            putExtra(PlayerActivity.EXTRA_START_VARIANT, PlayerActivity.VARIANT_VIETSUB)
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }
         startActivity(intent)
     }
 
-    /** Mo ban MP4 da long tieng thuyet minh. */
+    /** Mo ban MP4 da long tieng thuyet minh, van chong phu de neu co. */
     private fun openDub() {
         val rec = record ?: return
         if (rec.dubPath.isEmpty()) return
-        val uri = runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull() ?: run {
+        val originalUri = runCatching { MediaUri.resolve(this, rec.filePath) }.getOrNull()
+        val dubUri = runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull()
+        if (originalUri == null || dubUri == null) {
             toast(getString(R.string.toast_file_missing))
             return
         }
+        val srtPath = processor.repository.pathFor(recordId)
         val intent = Intent(this, PlayerActivity::class.java).apply {
             putExtra(PlayerActivity.EXTRA_RECORD_ID, recordId)
-            putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
-            putExtra(PlayerActivity.EXTRA_TITLE, "${rec.title} · ${getString(R.string.action_open_dub)}")
+            putExtra(PlayerActivity.EXTRA_VIDEO_URI, originalUri.toString())
+            putExtra(PlayerActivity.EXTRA_DUB_URI, dubUri.toString())
+            if (File(srtPath).exists()) {
+                putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
+            }
+            putExtra(PlayerActivity.EXTRA_START_VARIANT, PlayerActivity.VARIANT_NARRATION)
+            putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }
         startActivity(intent)
     }

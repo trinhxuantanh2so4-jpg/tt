@@ -11,10 +11,12 @@
 | **Tải video TikTok + Douyin không logo** | ✅ **Ưu tiên số 1, làm ngay** | Đây là nguồn lỗi lớn nhất hiện tại: TikTok phụ thuộc `tikwm.com`, Douyin phải cào HTML `iesdouyin.com` + sửa `playwm → play`. Một trong hai bên đổi là app hỏng. |
 | **Phụ đề tiếng Việt (vietsub)** | ⏸ **Giữ nguyên code, không đụng vào đợt này** | Pipeline `AudioExtractor → AsrEngine → Translator → SrtWriter` đang chạy ổn. Đổi nguồn tải cũng không cải thiện chất lượng ASR. |
 | **Thuyết minh (TTS + mux)** | ⏸ **Giữ nguyên code, không đụng vào đợt này** | Không liên quan tới việc lấy link stream. Chỉ nên xem lại sau khi đã có nguồn audio ổn định vài tuần. |
-| Thịnh hành, Lịch sử, Hồ sơ, Player | ⏸ Không đổi (trừ 1 màn cấu hình API nhỏ) | Tránh rủi ro lan rộng. |
+| Thịnh hành, Lịch sử, Hồ sơ, Player | ⏸ Không đổi trong Phase A–C (trừ 1 màn cấu hình API nhỏ) | Tránh rủi ro lan rộng. |
 
 **Nguyên tắc:** đợt này chỉ thay "cái để lấy link MP4". Mọi thứ sau khi đã có `DownloadRecord`
-(SQLite, vietsub, thuyết minh, player, lịch sử) **giữ nguyên 100%**.
+(SQLite, vietsub, thuyết minh, player, lịch sử) **giữ nguyên trong Phase A–C**.
+Sau khi A–C xanh, phần Lịch sử/vietsub/thuyết minh được nâng cấp riêng ở
+[`PLAN_HISTORY_VIETSUB_NARRATION.md`](PLAN_HISTORY_VIETSUB_NARRATION.md) — không quay lại đổi resolver.
 Nếu DTK chưa được cấu hình, app vẫn chạy như hiện tại → không có trạng thái "hỏng trong lúc migrate".
 
 ---
@@ -222,7 +224,7 @@ phải dừng được poll), read timeout OkHttp ≥ 35s để không cắt `?w
 | **B. Cấu hình + nối vào** ✅ | `ApiSettingsActivity`, `menu_main`, `VideoResolver` chọn provider + fallback | 0.5–1 ngày | Có key → analyze dùng DTK; không có key → app chạy y hệt cũ |
 | **C. Tải & QA** ✅ code / ⏳ QA máy thật | Header `Referer` nếu CDN 403, xử lý link rút gọn/caption, checklist tay, CI xanh | 0.5 ngày | 3 link TikTok + 3 link Douyin tải được, CI xanh, APK release cập nhật |
 | **D. Dọn dẹp (sau)** | Khi DTK chạy ổn định: bỏ `tikwm`/`iesdouyin`, bỏ fallback, cập nhật README | — | Chưa làm |
-| **E. Vietsub & thuyết minh (sau nữa)** | Chỉ xem lại nếu có lý do liên quan nguồn audio; không nằm trong đợt này | — | Chưa làm |
+| **E. Vietsub & thuyết minh (sau nữa)** | Tách thành plan riêng sau A–C, không đụng resolver | [`PLAN_HISTORY_VIETSUB_NARRATION.md`](PLAN_HISTORY_VIETSUB_NARRATION.md) | Đã triển khai |
 
 ### 7.1 Trạng thái code (2026-11-20)
 
@@ -235,8 +237,9 @@ phải dừng được poll), read timeout OkHttp ≥ 35s để không cắt `?w
   `TTApp.kt` (`DtkConfig.init`), `BaseDownloadActivity.kt` (truyền text gốc cho `/parse`
   và gửi `Referer` theo nền tảng), `VideoDownloader.kt` (thử mirror CDN khi 403/404).
 - Test JVM: `DtkMapperTest`, `DtkErrorTest`.
-- **Không đổi:** `DatabaseHelper` (vẫn version 3), `SubtitleActivity`, `Narration*`,
-  `PlayerActivity`, `HistoryActivity`, giao diện 2 tab.
+- **Không đổi trong Phase A–C:** `DatabaseHelper` (vẫn version 3), `SubtitleActivity`, `Narration*`,
+  `PlayerActivity`, `HistoryActivity`, giao diện 2 tab. Các file này chỉ được nâng cấp ở plan riêng
+  `PLAN_HISTORY_VIETSUB_NARRATION.md` sau này; DB vẫn giữ version 3.
 
 Chưa làm được ở local: chạy Gradle (không JDK/SDK) và QA 8 ca trên máy thật/có key DTK.
 
@@ -284,7 +287,7 @@ Không truyền key vào CI.
 - [x] Code `DtkResolver` lấy MP4 không logo cho cả 2 nền tảng qua 1 API (⏳ cần thử bằng key thật).
 - [x] Không có key nào trong source/APK; config nhập lúc chạy (`dtk_prefs`).
 - [x] Không cấu hình → app chạy y hệt bản `fbe8ba3` (mặc định `DtkConfig.enabled = false`).
-- [x] Không đụng code vietsub/thuyết minh/DB/player.
+- [x] Không đụng code vietsub/thuyết minh/DB/player **trong Phase A–C** (phase sau tách ở plan riêng).
 - [x] CI xanh (`e518b12`), `app-debug.apk` trên `v1.0.0` được ghi đè (84,9 MB).
 - [ ] QA 8 ca trên máy thật có server DTK + key read-only.
 

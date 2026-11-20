@@ -2,19 +2,25 @@ package com.example.tt
 
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
-import com.google.android.material.appbar.MaterialToolbar
+import com.example.tt.data.DatabaseHelper
+import com.example.tt.databinding.ActivityPlayerBinding
+import com.example.tt.subtitle.SubtitleRepository
+import com.example.tt.ui.MediaUri
+import com.example.tt.ui.setupBottomNav
 import java.io.File
 
 /**
- * Player xem video + phu de (Phase B+C).
- * - video duoc truyen qua content Uri (content://...) de co the dat cho AppProvider quyen doc.
- * - phu de SRT duoc gan qua MediaItem.SubtitleConfiguration.
+ * Player xem video + phu de, co the doi ban Goc / Co phu de / Thuyet minh ngay tren cung.
+ * Video truyen qua content Uri de FileProvider cap quyen doc; SRT gan bang SubRip config.
  */
 class PlayerActivity : AppCompatActivity() {
 
@@ -22,66 +28,139 @@ class PlayerActivity : AppCompatActivity() {
         const val EXTRA_RECORD_ID = "extra_record_id"
         const val EXTRA_VIDEO_URI = "extra_video_uri"
         const val EXTRA_SUBTITLE_URI = "extra_subtitle_uri"
+        const val EXTRA_DUB_URI = "extra_dub_uri"
+        const val EXTRA_START_VARIANT = "extra_start_variant"
         const val EXTRA_TITLE = "extra_title"
+
+        const val VARIANT_ORIGINAL = "original"
+        const val VARIANT_VIETSUB = "vietsub"
+        const val VARIANT_NARRATION = "narration"
     }
 
-    private lateinit var playerView: PlayerView
+    private data class Source(val label: String, val videoUri: Uri, val subtitleUri: Uri?)
+
+    private lateinit var binding: ActivityPlayerBinding
     private lateinit var player: ExoPlayer
-    private var subtitleUri: Uri? = null
+    private val sources = mutableListOf<Source>()
+    private var baseTitle = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_player)
-        playerView = findViewById(R.id.playerView)
+        binding = ActivityPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        baseTitle = intent.getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
+        binding.toolbar.title = baseTitle
+        binding.toolbar.setNavigationOnClickListener { onBack() }
+        setupBottomNav(binding.bottomNav, R.id.nav_none)
+
         player = ExoPlayer.Builder(this).build()
-        playerView.player = player
-
-        val videoUriString = getIntent().getStringExtra(EXTRA_VIDEO_URI)
-        val videoUri = if (videoUriString != null) {
-            Uri.parse(videoUriString)
-        } else {
-            val path = com.example.tt.data.DatabaseHelper(this)
-                .getDownload(getIntent().getLongExtra(EXTRA_RECORD_ID, 0L))?.filePath ?: ""
-            Uri.parse(path)
-        }
-        subtitleUri = getIntent().getParcelableExtra(EXTRA_SUBTITLE_URI)
-        // Chi gan phu de khi file .srt thuc su ton tai (tranh loi load subtitle).
-        val srtUri: Uri? = subtitleUri?.takeIf { uri ->
-            uri.scheme == "content" || File(uri.path ?: "").exists()
+        binding.playerView.player = player
+        buildSources()
+        if (sources.isEmpty()) {
+            Toast.makeText(this, R.string.toast_file_missing, Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
-        val builder = MediaItem.Builder().setUri(videoUri)
-        if (srtUri != null) {
-            val subtitle = MediaItem.SubtitleConfiguration.Builder(srtUri)
-                .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                .setLanguage("vi")
-                .setSelectionFlags(C.SELECTION_FLAG_FORCED)
-                .build()
-            builder.setSubtitleConfigurations(listOf(subtitle))
-        }
-        val mediaItem = builder.build()
+        binding.spinnerSource.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            sources.map { it.label }
+        )
+        binding.spinnerSource.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) = play(position)
 
-        player.setMediaItem(mediaItem, true)
+                override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+            }
+
+        val startIndex = when (intent.getStringExtra(EXTRA_START_VARIANT)) {
+            VARIANT_VIETSUB -> sources.indexOfFirst {
+                it.label == getString(R.string.player_source_vietsub)
+            }
+            VARIANT_NARRATION -> sources.indexOfFirst {
+                it.label == getString(R.string.player_source_narration)
+            }
+            else -> 0
+        }
+        binding.spinnerSource.setSelection(startIndex.coerceAtLeast(0))
+    }
+
+    @Suppress("DEPRECATION")
+    private fun buildSources() {
+        sources.clear()
+        val recordId = intent.getLongExtra(EXTRA_RECORD_ID, 0L)
+        val record = DatabaseHelper(this).getDownload(recordId)
+
+        val videoUri = intent.getStringExtra(EXTRA_VIDEO_URI)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { Uri.parse(it) }
+            ?: record?.filePath?.takeIf { it.isNotBlank() }
+                ?.let { MediaUri.resolve(this, it) }
+        if (videoUri == null) return
+
+        val subtitleUri = intent.getParcelableExtra(EXTRA_SUBTITLE_URI) as? Uri
+            ?: record?.subtitlePath?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
+            ?: Uri.parse(SubtitleRepository(this).pathFor(recordId))
+        val srt = subtitleUri.takeIf { exists(it) }
+
+        sources.add(Source(getString(R.string.player_source_original), videoUri, null))
+        if (srt != null) {
+            sources.add(Source(getString(R.string.player_source_vietsub), videoUri, srt))
+        }
+
+        val dubUri = intent.getStringExtra(EXTRA_DUB_URI)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { Uri.parse(it) }
+            ?: record?.dubPath?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
+        if (dubUri != null && exists(dubUri)) {
+            // Ban thuyet minh van chong SRT neu co de nguoi dung doc theo.
+            sources.add(Source(getString(R.string.player_source_narration), dubUri, srt))
+        }
+    }
+
+    private fun exists(uri: Uri): Boolean =
+        uri.scheme == "content" || runCatching { File(uri.path ?: "").exists() }.getOrDefault(false)
+
+    private fun play(index: Int) {
+        val source = sources.getOrNull(index) ?: return
+        val builder = MediaItem.Builder().setUri(source.videoUri)
+        source.subtitleUri?.let { srt ->
+            builder.setSubtitleConfigurations(
+                listOf(
+                    MediaItem.SubtitleConfiguration.Builder(srt)
+                        .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                        .setLanguage("vi")
+                        .setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                        .build()
+                )
+            )
+        }
+        player.setMediaItem(builder.build(), true)
         player.prepare()
         player.play()
-
-        findViewById<MaterialToolbar>(R.id.toolbar)?.apply {
-            title = getIntent().getStringExtra(EXTRA_TITLE) ?: getString(R.string.app_name)
-            setNavigationOnClickListener { onBack() }
-        }
+        binding.toolbar.title = if (index == 0) baseTitle else "$baseTitle · ${source.label}"
     }
 
     private fun onBack() {
-        runCatching { player.stop() }
-        runCatching { player.release() }
-        playerView.player = null
+        releasePlayer()
         finish()
     }
 
-    override fun onDestroy() {
+    private fun releasePlayer() {
         runCatching { player.stop() }
         runCatching { player.release() }
-        playerView.player = null
+        binding.playerView.player = null
+    }
+
+    override fun onDestroy() {
+        releasePlayer()
         super.onDestroy()
     }
 }

@@ -313,11 +313,41 @@ class DatabaseHelper(context: Context) :
     }
 
     /** Cap nhat duong dan phu de va trang thai xu ly sau Phase B. */
-    fun updateSubtitle(id: Long, subtitlePath: String, status: String, language: String) {
+    fun updateSubtitle(id: Long, subtitlePath: String, status: String, language: String) =
+        updateSubtitle(id, subtitlePath, status, language, language)
+
+    /**
+     * Luu day du thong tin phu de. them [sourceLanguage] de biet video goc la tieng Trung/Anh/Viet;
+     * khong can doi schema vi C_SUBTITLE_LANG da co tu version 3.
+     */
+    fun updateSubtitle(
+        id: Long,
+        subtitlePath: String,
+        status: String,
+        language: String,
+        sourceLanguage: String
+    ) {
         val cv = ContentValues().apply {
             put(C_SUBTITLE_PATH, subtitlePath)
             put(C_PROCESS_STATUS, status)
             put(C_LANGUAGE, language)
+            put(C_SUBTITLE_LANG, sourceLanguage)
+        }
+        writableDatabase.use { db ->
+            db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(id.toString()))
+        }
+    }
+
+    /** Xoa sach ban xu ly, giu nguyen video goc va cac thong tin tai. */
+    fun clearProcessed(id: Long) {
+        val cv = ContentValues().apply {
+            put(C_SUBTITLE_PATH, "")
+            put(C_PROCESS_STATUS, "")
+            put(C_LANGUAGE, "")
+            put(C_SUBTITLE_LANG, "")
+            put(C_DUB_PATH, "")
+            put(C_VOICE, "")
+            put(C_BURN_PATH, "")
         }
         writableDatabase.use { db ->
             db.update(T_DOWNLOADS, cv, "$C_ID = ?", arrayOf(id.toString()))

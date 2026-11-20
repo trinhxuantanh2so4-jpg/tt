@@ -15,6 +15,12 @@ Cập nhật: 2026-11-20.
 | 6 | 🟡 Medium | Ngôn ngữ nguồn mặc định có thể là "Tiếng Trung" cho video TikTok do `setSelection` chạy trước khi gắn listener | `SubtitleActivity.kt` | Gán `selectedSourceLanguage` tường minh theo nền tảng (`zh`/`en`) |
 | 7 | 🟢 Low | Nút **Tạo thuyết minh** bị kẹt ẩn nếu pipeline tạo phụ đề lỗi | `SubtitleActivity.kt` | Khôi phục visibility trong `finally` theo danh sách cue |
 | 8 | 🟢 Low | `PlayerActivity` không hiển thị tiêu đề video | `PlayerActivity.kt` | Set `toolbar.title` từ `EXTRA_TITLE` |
+| 9 | 🔴 Critical | Tạo phụ đề không ghi `subtitle_path` vào SQLite → lịch sử không có badge, "Xoá bản xử lý" xoá `File("")` và để file mồ côi | `SubtitleActivity.kt`, `DatabaseHelper.kt`, `HistoryActivity.kt` | Lưu path thật + `subtitle_lang`; thêm `clearProcessed(id)`; xoá qua `SubtitleRepository.delete(id)` + WAV/MP4 thật |
+| 10 | 🟠 High | Mở lại `.srt` mất câu gốc (SRT chỉ chứa bản dịch), không so sánh được khi sửa | `SubtitleRepository.kt`, `SubtitleSourceCodec.kt` | Lưu câu gốc vào file phụ `${id}.sources` dạng Base64, đọc lại khi parse |
+| 11 | 🟠 High | Vào lịch sử sửa phụ đề thì không đổi được giọng/âm nền thuyết minh | `activity_subtitle.xml`, `SubtitleActivity.kt` | Thêm card tuỳ chọn thuyết minh, lấy `record.voice` làm giá trị ban đầu |
+| 12 | 🟠 High | Nghe thuyết minh từ lịch sử/SubtitleActivity không có phụ đề chồng và không đổi bản trong player | `HistoryActivity.kt`, `PlayerActivity.kt` | Truyền `EXTRA_DUB_URI` + `EXTRA_START_VARIANT`; spinner Gốc/Vietsub/Thuyết minh trong player |
+| 13 | 🟡 Medium | `SubtitleAdapter` dùng `bindingAdapterPosition` trong `TextWatcher` có thể trượt vị trí | `SubtitleAdapter.kt` | Đổi sang `absoluteAdapterPosition` + kiểm tra `NO_POSITION` |
+| 14 | 🟢 Low | `item_subtitle_cue.xml` có 2 attribute trên cùng 1 dòng | `item_subtitle_cue.xml` | Tách dòng (aapt2 vẫn compiles nhưng khó đọc) |
 
 ## 2. Kiểm tra tự động
 
@@ -30,6 +36,8 @@ Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `Cue
 
 > Các test số mới (`DtkMapperTest`, `DtkErrorTest`) chỉ là unit test JVM thuần, chưa thay thế
 > QA trên máy thật có server DTK — xem `docs/PLAN_API_DTK.md` §7.1 và §5 của file này.
+> Plan nâng cấp lịch sử/vietsub/thuyết minh: `docs/PLAN_HISTORY_VIETSUB_NARRATION.md`;
+> test JVM mới `SubtitleSourceCodecTest` (không import Android).
 
 ## 3. Checklist tay trên máy thật (chưa chạy trong CI)
 
@@ -44,6 +52,11 @@ Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `Cue
 - [ ] Lịch sử: badge `Vietsub` / `Thuyết minh`; nhấn giữ mở menu; xoá bản xử lý không xoá video gốc.
 - [ ] Tải lại cùng video: không mất vietsub/thuyết minh cũ, không tạo file mồ côi.
 - [ ] Mở lại bản thuyết minh từ Lịch sử và từ `SubtitleActivity` → không crash.
+- [ ] Sửa 1 câu → **Lưu file .srt** → mở lại vẫn thấy câu đã sửa và "Lời gốc" không mất.
+- [ ] Lịch sử: nhấn card hiện chọn bản Gốc/Vietsub/Thuyết minh; nút `⋮` sửa được vietsub + đổi giọng/âm nền.
+- [ ] Trong player đổi spinner giữa 3 bản → không crash, phụ đề đi theo bản Vietsub/Thuyết minh.
+- [ ] Tạo lại thuyết minh có xác nhận; bản cũ bị thay thế, badge vẫn đúng.
+- [ ] Xoá bản xử lý → mở lại màn phụ đề thấy trống, video gốc vẫn mở được.
 - [ ] Xoay màn hình / dark mode khi đang chạy → không crash.
 
 ## 4. Rủi ro còn lại (chưa xử lý)
@@ -51,8 +64,10 @@ Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `Cue
 - Media3 Transformer có thể lỗi với WAV đầu vào trên một số thiết bị/API cũ; chưa có fallback chỉ xuất WAV.
 - Câu dịch dài hơn khoảng trống chỉ chồng nhẹ, chưa tự tăng `speechRate`/fade.
 - Burn-in phụ đề cứng chưa làm (`burn_path` mới có cột).
-- `HistoryActivity` mở video gốc bằng trình phát ngoài, chưa có màn chọn Gốc / Vietsub / Thuyết minh.
+- Câu dịch dài hơn khoảng trống vẫn có thể chồng nhẹ; chưa tự tăng `speechRate`/fade.
+- Media3 lỗi khi ghép WAV vẫn báo lỗi rõ, chưa có fallback phát riêng file WAV.
 - ML Kit cần Google Play services; TTS cần giọng hệ thống `vi-VN`.
+- DB giữ version 3: câu gốc lưu ở file phụ `${id}.sources`, không thêm cột mới.
 
 ## 5. Checklist nguồn tải DTK (mới, chạy khi có server + key)
 
@@ -94,3 +109,22 @@ request_id / thời gian xảy ra (để so log DTK): ...
 
 > Khi báo lỗi: che key, ghi đúng message tiếng Việt hiện trên app và (nếu có) `request_id`
 > trong `meta` của response DTK. Không gửi key thật vào issue/chat công khai.
+
+## 7. Form báo cáo QA nâng cấp Lịch sử / Vietsub / Thuyết minh
+
+```text
+APK: đã cài / lỗi cài (ghi rõ)
+Thiết bị: máy thật / giả lập | Android ... | có giọng vi-VN: có/không
+
+A. Tạo phụ đề + sửa: PASS / FAIL | câu sửa còn sau khi mở lại: có/không | "Lời gốc" còn: có/không
+B. Lịch sử badge Vietsub/Thuyết minh: PASS / FAIL | nhấn card chọn bản: PASS / FAIL
+C. Sửa từ lịch sử đổi giọng/âm nền: PASS / FAIL | giọng đã chọn: | âm nền:
+D. Tạo lại thuyết minh (có xác nhận): PASS / FAIL | message lỗi nếu có:
+E. Nghe thuyết minh có phụ đề chồng: PASS / FAIL
+F. Player đổi Gốc ↔ Vietsub ↔ Thuyết minh: PASS / FAIL | bản bị lỗi (nếu có):
+G. Xoá bản xử lý: PASS / FAIL | mở lại màn phụ đề thấy: trống/cũ | video gốc mở được: có/không
+H. Tải lại cùng video giữ bản cũ: PASS / FAIL
+
+Message lỗi tiếng Việt hiện trên app (nếu có): ...
+Ảnh chụp màn hình (đã che key): ...
+```

@@ -1,6 +1,5 @@
 package com.example.tt
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -15,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tt.data.DatabaseHelper
 import com.example.tt.data.DownloadRecord
 import com.example.tt.databinding.ActivityHistoryBinding
+import com.example.tt.subtitle.SubtitleRepository
 import com.example.tt.ui.HistoryAdapter
 import com.example.tt.ui.MediaUri
 import com.example.tt.ui.setupBottomNav
@@ -30,9 +30,17 @@ import java.io.File
  *  - READ: danh sach + tim kiem + loc yeu thich
  *  - UPDATE: bat/tat yeu thich
  *  - DELETE: xoa 1 dong (co HOAN TAC) / xoa het (co xac nhan)
- *  - Mo lai video da tai bang FileProvider / MediaStore
+ *  - Chon ban phat: Goc / Co vietsub / Thuyet minh; sua vietsub & thuyet minh tai day.
  */
 class HistoryActivity : AppCompatActivity() {
+
+    private enum class PlayVariant(val key: String, val labelRes: Int) {
+        ORIGINAL(PlayerActivity.VARIANT_ORIGINAL, R.string.player_source_original),
+        VIETSUB(PlayerActivity.VARIANT_VIETSUB, R.string.player_source_vietsub),
+        NARRATION(PlayerActivity.VARIANT_NARRATION, R.string.player_source_narration)
+    }
+
+    private data class MenuAction(val label: String, val run: () -> Unit)
 
     private lateinit var binding: ActivityHistoryBinding
     private lateinit var db: DatabaseHelper
@@ -51,10 +59,11 @@ class HistoryActivity : AppCompatActivity() {
         setupBottomNav(binding.bottomNav, R.id.nav_history)
 
         adapter = HistoryAdapter(
-            onOpen = { openVideo(it) },
+            onOpen = { showPlaybackChooser(it) },
             onToggleFavorite = { toggleFavorite(it) },
             onDelete = { deleteWithUndo(it) },
-            onSubtitle = { showProcessMenu(it) }
+            onSubtitle = { showProcessMenu(it) },
+            onMore = { showProcessMenu(it) }
         )
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
         binding.rvHistory.adapter = adapter
@@ -182,89 +191,153 @@ class HistoryActivity : AppCompatActivity() {
         ItemTouchHelper(callback).attachToRecyclerView(binding.rvHistory)
     }
 
-    // ---------------- Mo lai video ----------------
-    private fun openVideo(rec: DownloadRecord) {
-        val videoUri = MediaUri.resolve(this, rec.filePath)
-
-        if (videoUri != null) {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(videoUri, "video/mp4")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            try {
-                startActivity(intent)
-                return
-            } catch (_: ActivityNotFoundException) {
-                // thu tiep bang link goc ben duoi
-            } catch (_: SecurityException) {
-                // File trong vung rieng cua app / het quyen truy cap
-            }
-        }
-
-        val source = rec.sourceUrl.ifEmpty { rec.downloadUrl }
-        if (source.startsWith("http")) {
-            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(source))) }
-                .onFailure { toast(getString(R.string.toast_no_app_open)) }
-        } else {
-            toast(getString(R.string.toast_file_missing))
-        }
+    // ---------------- Chon ban phat ----------------
+    private fun hasSubtitle(rec: DownloadRecord): Boolean {
+        val dbPath = rec.subtitlePath.isNotEmpty() && File(rec.subtitlePath).exists()
+        return dbPath || File(SubtitleRepository(this).pathFor(rec.id)).exists()
     }
 
-    /** Nhan giu vao card: chon tao phu de / nghe thuyet minh / xoa ban xu ly. */
-    private fun showProcessMenu(rec: DownloadRecord) {
-        val hasDub = rec.dubPath.isNotEmpty()
-        val hasProcessed = rec.subtitlePath.isNotEmpty() || hasDub
-        val items = mutableListOf(getString(R.string.menu_subtitle))
-        if (hasDub) items.add(getString(R.string.action_open_dub))
-        if (hasProcessed) items.add(getString(R.string.menu_delete_processed))
+    private fun hasDub(rec: DownloadRecord): Boolean =
+        rec.dubPath.isNotEmpty() &&
+            runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull() != null
 
+    private fun showPlaybackChooser(rec: DownloadRecord) {
+        val choices = buildList {
+            add(PlayVariant.ORIGINAL to getString(PlayVariant.ORIGINAL.labelRes))
+            if (hasSubtitle(rec)) {
+                add(PlayVariant.VIETSUB to getString(PlayVariant.VIETSUB.labelRes))
+            }
+            if (hasDub(rec)) {
+                add(PlayVariant.NARRATION to getString(PlayVariant.NARRATION.labelRes))
+            }
+        }
+        // Chi co video goc -> mo thang, khong bat nguoi dung chon 1 muc.
+        if (choices.size == 1) {
+            openPlayer(rec, choices.first().first)
+            return
+        }
         MaterialAlertDialogBuilder(this)
-            .setTitle(rec.title)
-            .setItems(items.toTypedArray()) { _, which ->
-                when (which) {
-                    0 -> openSubtitle(rec)
-                    1 -> if (hasDub) openDub(rec) else deleteProcessed(rec)
-                    2 -> deleteProcessed(rec)
-                }
+            .setTitle(R.string.player_source_prompt)
+            .setItems(choices.map { it.second }.toTypedArray()) { _, which ->
+                openPlayer(rec, choices[which].first)
             }
             .show()
     }
 
-    private fun openSubtitle(rec: DownloadRecord) {
-        if (rec.filePath.isEmpty()) {
+    private fun openPlayer(rec: DownloadRecord, variant: PlayVariant) {
+        val targetPath = if (variant == PlayVariant.NARRATION) rec.dubPath else rec.filePath
+        if (MediaUri.resolve(this, targetPath) == null) {
             toast(getString(R.string.toast_file_missing))
             return
         }
-        startActivity(SubtitleActivity.createIntent(this, rec.id, rec.platform.id))
-    }
 
-    /** Mo ban MP4 da long tieng thuyet minh. */
-    private fun openDub(rec: DownloadRecord) {
-        val uri = runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull()
-        if (uri == null) {
-            toast(getString(R.string.toast_file_missing))
-            return
-        }
+        val originalUri = MediaUri.resolve(this, rec.filePath)
+        val dubUri = if (hasDub(rec)) MediaUri.resolve(this, rec.dubPath) else null
+        val srtPath = SubtitleRepository(this).pathFor(rec.id)
+            .takeIf { File(it).exists() }
+            ?: rec.subtitlePath.takeIf { it.isNotBlank() && File(it).exists() }
+
         startActivity(
             Intent(this, PlayerActivity::class.java).apply {
                 putExtra(PlayerActivity.EXTRA_RECORD_ID, rec.id)
-                putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
-                putExtra(
-                    PlayerActivity.EXTRA_TITLE,
-                    "${rec.title} · ${getString(R.string.badge_narration)}"
-                )
+                originalUri?.let { putExtra(PlayerActivity.EXTRA_VIDEO_URI, it.toString()) }
+                dubUri?.let { putExtra(PlayerActivity.EXTRA_DUB_URI, it.toString()) }
+                if (variant != PlayVariant.ORIGINAL && srtPath != null) {
+                    putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
+                }
+                putExtra(PlayerActivity.EXTRA_START_VARIANT, variant.key)
+                putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
             }
         )
     }
 
-    /** Xoa file .srt + MP4 thuyet minh, giu nguyen video goc. */
+    // ---------------- Sua vietsub / thuyet minh ----------------
+    /** Nhan "..." hoac nhan giu card: mo menu xu ly. */
+    private fun showProcessMenu(rec: DownloadRecord) {
+        val subtitleReady = hasSubtitle(rec)
+        val dubReady = hasDub(rec)
+        val actions = buildList {
+            add(
+                MenuAction(
+                    getString(
+                        if (subtitleReady) R.string.menu_edit_vietsub else R.string.menu_subtitle
+                    )
+                ) { openSubtitle(rec, withNarration = false) }
+            )
+            if (subtitleReady) {
+                add(MenuAction(getString(R.string.action_create_narration)) {
+                    openSubtitle(rec, withNarration = true)
+                })
+            }
+            if (dubReady) {
+                add(MenuAction(getString(R.string.menu_regenerate_narration)) {
+                    openSubtitle(rec, withNarration = true)
+                })
+            }
+            if (subtitleReady) {
+                add(MenuAction(getString(R.string.action_open_player)) {
+                    openPlayer(rec, PlayVariant.VIETSUB)
+                })
+            }
+            if (dubReady) {
+                add(MenuAction(getString(R.string.action_open_dub)) {
+                    openPlayer(rec, PlayVariant.NARRATION)
+                })
+            }
+            if (subtitleReady || dubReady) {
+                add(MenuAction(getString(R.string.menu_delete_processed)) {
+                    confirmDeleteProcessed(rec)
+                })
+            }
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(rec.title)
+            .setItems(actions.map { it.label }.toTypedArray()) { _, which ->
+                actions[which].run()
+            }
+            .show()
+    }
+
+    /** Mo man hinh phu de de sua; khong tu chay TTS - nguoi dung bam nut. */
+    private fun openSubtitle(rec: DownloadRecord, withNarration: Boolean) {
+        if (rec.filePath.isEmpty()) {
+            toast(getString(R.string.toast_file_missing))
+            return
+        }
+        startActivity(
+            SubtitleActivity.createIntent(
+                this,
+                rec.id,
+                rec.platform.id,
+                withNarration = withNarration,
+                voiceLabel = rec.voice,
+                keepBackground = true,
+                autoRun = false
+            )
+        )
+    }
+
+    private fun confirmDeleteProcessed(rec: DownloadRecord) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_delete_processed_title)
+            .setMessage(R.string.dialog_delete_processed_message)
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .setPositiveButton(R.string.dialog_delete_confirm) { _, _ -> deleteProcessed(rec) }
+            .show()
+    }
+
+    /** Xoa file .srt + cau goc + WAV/MP4 thuyet minh, giu nguyen video goc. */
     private fun deleteProcessed(rec: DownloadRecord) {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                runCatching { File(rec.subtitlePath).delete() }
-                runCatching { File(rec.dubPath).delete() }
-                db.updateSubtitle(rec.id, "", "", rec.language)
-                db.updateDub(rec.id, "", "", "")
+                SubtitleRepository(this@HistoryActivity).delete(rec.id)
+                if (rec.dubPath.isNotBlank()) {
+                    val mp4 = File(rec.dubPath)
+                    runCatching { mp4.delete() }
+                    mp4.parentFile?.let { dir -> runCatching { File(dir, "${rec.id}.wav").delete() } }
+                }
+                db.clearProcessed(rec.id)
             }
             toast(getString(R.string.toast_processed_deleted))
             reload()

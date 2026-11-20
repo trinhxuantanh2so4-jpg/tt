@@ -19,7 +19,8 @@ class HistoryAdapter(
     private val onOpen: (DownloadRecord) -> Unit,
     private val onToggleFavorite: (DownloadRecord) -> Unit,
     private val onDelete: (DownloadRecord) -> Unit,
-    private val onSubtitle: (DownloadRecord) -> Unit
+    private val onSubtitle: (DownloadRecord) -> Unit,
+    private val onMore: (DownloadRecord) -> Unit
 ) : ListAdapter<DownloadRecord, HistoryAdapter.VH>(DIFF) {
 
     class VH(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -64,6 +65,7 @@ class HistoryAdapter(
             }
             btnFavorite.setOnClickListener { onToggleFavorite(rec) }
             btnDelete.setOnClickListener { onDelete(rec) }
+            btnMore.setOnClickListener { onMore(rec) }
         }
     }
 

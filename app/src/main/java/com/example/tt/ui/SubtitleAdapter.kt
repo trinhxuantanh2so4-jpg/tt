@@ -47,11 +47,9 @@ class SubtitleAdapter(
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
                 override fun afterTextChanged(s: Editable?) {
-                    if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                        onCueTextChanged(
-                            bindingAdapterPosition,
-                            s?.toString().orEmpty()
-                        )
+                    val position = absoluteAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        onCueTextChanged(position, s?.toString().orEmpty())
                     }
                 }
             }

@@ -166,6 +166,21 @@
     <string name="subtitle_source_hint">Lời gốc</string>
     <string name="dialog_delete_srt_title">Xoá file phụ đề?</string>
     <string name="dialog_delete_srt_message">File .srt của video này sẽ bị xoá. Bạn có chắc không?</string>
+    <string name="subtitle_ready">Đã có sẵn phụ đề · sửa và lưu nếu cần</string>
+    <string name="narration_options_title">Tuỳ chọn thuyết minh</string>
+    <string name="menu_edit_vietsub">Sửa vietsub</string>
+    <string name="menu_regenerate_narration">Tạo lại thuyết minh</string>
+    <string name="history_more_desc">Tuỳ chọn video</string>
+    <string name="player_source_prompt">Chọn bản phát</string>
+    <string name="player_source_original">Video gốc</string>
+    <string name="player_source_vietsub">Có phụ đề tiếng Việt</string>
+    <string name="player_source_narration">Thuyết minh</string>
+    <string name="dialog_delete_processed_title">Xoá bản xử lý?</string>
+    <string name="dialog_delete_processed_message">File .srt, câu gốc và bản thuyết minh sẽ bị xoá. Video gốc vẫn giữ lại.</string>
+    <string name="dialog_replace_narration_title">Tạo lại thuyết minh?</string>
+    <string name="dialog_replace_narration_message">Bản thuyết minh hiện tại sẽ bị thay thế bằng phụ đề vừa sửa.</string>
+    <string name="dialog_replace">Thay thế</string>
+    <string name="dialog_delete_confirm">Xoá</string>
 
     <!-- ===== Nguon tai video (DTK API) ===== -->
     <string name="action_api_settings">Nguồn tải video (nâng cao)</string>
