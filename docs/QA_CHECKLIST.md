@@ -21,9 +21,9 @@ Cập nhật: 2026-11-20.
 | Hạng mục | Lệnh / cách kiểm tra | Trạng thái |
 |----------|----------------------|-----------|
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
-| Unit test JVM | `gradle testDebugUnitTest` (CI) | ⏳ chờ CI commit QA |
-| Build APK debug | `gradle assembleDebug` (CI) | ⏳ chờ CI commit QA |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ⏳ chờ CI commit QA |
+| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`7444501`) |
+| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`7444501`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`7444501`) |
 
 Unit test hiện có: `UrlParserTest`, `DouyinParserTest`, `SrtWriterTest`, `CueBuilderTest`, `WavIoTest`, `NarrationTimelineTest`.
 
