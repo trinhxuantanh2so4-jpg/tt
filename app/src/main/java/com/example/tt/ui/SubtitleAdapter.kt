@@ -13,6 +13,10 @@ import com.example.tt.subtitle.SubtitleCue
  * Danh sach cue cua file .srt dang duoc tao - moi cue co TextInput de nguoi dung
  * sua cau dich (tieng Viet) va giu nguyen cau goc.
  */
+/**
+ * @param onTextChanged nhận `cue.index` (ổn định) chứ không phải adapter position,
+ *                      tránh ghi nhầm khi ViewHolder được tái sử dụng.
+ */
 class SubtitleAdapter(
     private val onTextChanged: (Int, String) -> Unit
 ) : RecyclerView.Adapter<SubtitleAdapter.VH>() {
@@ -41,19 +45,23 @@ class SubtitleAdapter(
                 )
             binding.tvCueSource.text = cue.source.ifEmpty { cue.text }
             binding.etCueText.hint = binding.root.context.getString(R.string.subtitle_edit_hint)
-            binding.etCueText.setText(cue.text)
+
+            // QUAN TRỌNG: remove watcher CŨ trước khi setText. Nếu làm ngược lại,
+            // watcher của cue trước đó (ViewHolder tái sử dụng) sẽ chạy và ghi đè nhầm cue.
             watcher?.let { binding.etCueText.removeTextChangedListener(it) }
+            watcher = null
+            binding.etCueText.setText(cue.text)
+
+            // Dùng cue.index làm khoá ổn định thay vì adapter position.
+            val cueIndex = cue.index
             watcher = object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
                 override fun afterTextChanged(s: Editable?) {
-                    val position = absoluteAdapterPosition
-                    if (position != RecyclerView.NO_POSITION) {
-                        onCueTextChanged(position, s?.toString().orEmpty())
-                    }
+                    onCueTextChanged(cueIndex, s?.toString().orEmpty())
                 }
             }
-            binding.etCueText.addTextChangedListener(watcher)
+            watcher?.let { binding.etCueText.addTextChangedListener(it) }
         }
     }
 

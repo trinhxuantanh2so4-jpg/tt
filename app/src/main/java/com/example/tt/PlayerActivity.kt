@@ -92,7 +92,6 @@ class PlayerActivity : AppCompatActivity() {
         binding.spinnerSource.setSelection(startIndex.coerceAtLeast(0))
     }
 
-    @Suppress("DEPRECATION")
     private fun buildSources() {
         sources.clear()
         val recordId = intent.getLongExtra(EXTRA_RECORD_ID, 0L)
@@ -103,12 +102,19 @@ class PlayerActivity : AppCompatActivity() {
             ?.let { Uri.parse(it) }
             ?: record?.filePath?.takeIf { it.isNotBlank() }
                 ?.let { MediaUri.resolve(this, it) }
-        if (videoUri == null) return
+        // content Uri da duoc cap quyen; file path thi phai ton tai that.
+        if (videoUri == null || !exists(videoUri)) return
 
-        val subtitleUri = intent.getParcelableExtra(EXTRA_SUBTITLE_URI) as? Uri
-            ?: record?.subtitlePath?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
-            ?: Uri.parse(SubtitleRepository(this).pathFor(recordId))
-        val srt = subtitleUri.takeIf { exists(it) }
+        // Nhan dang String de tranh getParcelableExtra khong on dinh theo API;
+        // fallback deu di qua MediaUri de ra content Uri (FileProvider) thay vi bare path.
+        val subtitleUri = intent.getStringExtra(EXTRA_SUBTITLE_URI)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { Uri.parse(it) }
+            ?: record?.subtitlePath?.takeIf { it.isNotBlank() }
+                ?.let { MediaUri.resolve(this, it) }
+            ?: SubtitleRepository(this).pathFor(recordId).takeIf { File(it).exists() }
+                ?.let { MediaUri.resolve(this, it) }
+        val srt = subtitleUri?.takeIf { exists(it) }
 
         sources.add(Source(getString(R.string.player_source_original), videoUri, null))
         if (srt != null) {
@@ -118,7 +124,8 @@ class PlayerActivity : AppCompatActivity() {
         val dubUri = intent.getStringExtra(EXTRA_DUB_URI)
             ?.takeIf { it.isNotBlank() }
             ?.let { Uri.parse(it) }
-            ?: record?.dubPath?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) }
+            ?: record?.dubPath?.takeIf { it.isNotBlank() }
+                ?.let { MediaUri.resolve(this, it) }
         if (dubUri != null && exists(dubUri)) {
             // Ban thuyet minh van chong SRT neu co de nguoi dung doc theo.
             sources.add(Source(getString(R.string.player_source_narration), dubUri, srt))
@@ -130,22 +137,31 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun play(index: Int) {
         val source = sources.getOrNull(index) ?: return
-        val builder = MediaItem.Builder().setUri(source.videoUri)
-        source.subtitleUri?.let { srt ->
-            builder.setSubtitleConfigurations(
-                listOf(
-                    MediaItem.SubtitleConfiguration.Builder(srt)
-                        .setMimeType(MimeTypes.APPLICATION_SUBRIP)
-                        .setLanguage("vi")
-                        .setSelectionFlags(C.SELECTION_FLAG_FORCED)
-                        .build()
+        try {
+            val builder = MediaItem.Builder().setUri(source.videoUri)
+            source.subtitleUri?.let { srt ->
+                builder.setSubtitleConfigurations(
+                    listOf(
+                        MediaItem.SubtitleConfiguration.Builder(srt)
+                            .setMimeType(MimeTypes.APPLICATION_SUBRIP)
+                            .setLanguage("vi")
+                            .setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                            .build()
+                    )
                 )
-            )
+            }
+            player.setMediaItem(builder.build(), true)
+            player.prepare()
+            player.play()
+            binding.toolbar.title = if (index == 0) baseTitle else "$baseTitle · ${source.label}"
+        } catch (t: Throwable) {
+            // Khong de loi media lam thoat app (T5).
+            Toast.makeText(
+                this,
+                getString(R.string.toast_player_error, t.message ?: "không rõ"),
+                Toast.LENGTH_SHORT
+            ).show()
         }
-        player.setMediaItem(builder.build(), true)
-        player.prepare()
-        player.play()
-        binding.toolbar.title = if (index == 0) baseTitle else "$baseTitle · ${source.label}"
     }
 
     private fun onBack() {

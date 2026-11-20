@@ -2,7 +2,6 @@ package com.example.tt
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -46,6 +45,7 @@ class SubtitleActivity : AppCompatActivity() {
         const val EXTRA_KEEP_BACKGROUND = "extra_keep_background"
         const val EXTRA_AUTO_RUN = "extra_auto_run"
         const val PREFS_KEY_CURRENT_SUBTITLE_RECORD = "current_subtitle_record_id"
+        private const val PREFS_SUBTITLE_OPTS = "subtitle_opts"
 
         fun createIntent(
             context: Context,
@@ -107,6 +107,11 @@ class SubtitleActivity : AppCompatActivity() {
 
         withNarration = intent.getBooleanExtra(EXTRA_WITH_NARRATION, false)
         keepBackground = intent.getBooleanExtra(EXTRA_KEEP_BACKGROUND, true)
+        // Lựa chọn đã lưu ở lần trước thắng intent mặc định (T6).
+        getSharedPreferences(PREFS_SUBTITLE_OPTS, MODE_PRIVATE).let { prefs ->
+            val key = "keep_bg_$recordId"
+            if (prefs.contains(key)) keepBackground = prefs.getBoolean(key, true)
+        }
         autoRun = intent.getBooleanExtra(EXTRA_AUTO_RUN, false)
         voiceLabel = intent.getStringExtra(EXTRA_VOICE_LABEL)
             ?.takeIf { it.isNotBlank() }
@@ -149,8 +154,10 @@ class SubtitleActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
     }
 
-    private val subtitleAdapter = SubtitleAdapter { position, text ->
-        if (position in cues.indices) {
+    /** Adapter trả về cue.index (khoá ổn định), không phải vị trí RecyclerView. */
+    private val subtitleAdapter = SubtitleAdapter { cueIndex, text ->
+        val position = cues.indexOfFirst { it.index == cueIndex }
+        if (position >= 0) {
             cues[position] = cues[position].copy(text = text)
         }
     }
@@ -196,6 +203,7 @@ class SubtitleActivity : AppCompatActivity() {
                     id: Long
                 ) {
                     voiceLabel = binding.spinnerVoice.selectedItem?.toString() ?: voiceLabel
+                    persistVoiceOption()
                 }
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
@@ -206,7 +214,20 @@ class SubtitleActivity : AppCompatActivity() {
         )
         binding.rgBackground.setOnCheckedChangeListener { _, checkedId ->
             keepBackground = checkedId != R.id.rbNarrationOnly
+            persistBackgroundOption()
         }
+    }
+
+    /** Lưu ngay lúc đổi để dù TTS lỗi thì lựa chọn vẫn còn khi mở lại (T6). */
+    private fun persistVoiceOption() {
+        lifecycleScope.launch(Dispatchers.IO) { db.updateVoice(recordId, voiceLabel) }
+    }
+
+    private fun persistBackgroundOption() {
+        getSharedPreferences(PREFS_SUBTITLE_OPTS, MODE_PRIVATE)
+            .edit()
+            .putBoolean("keep_bg_$recordId", keepBackground)
+            .apply()
     }
 
     private fun languageIndex(code: String): Int = when (code) {
@@ -273,10 +294,11 @@ class SubtitleActivity : AppCompatActivity() {
             } catch (e: CancellationException) {
                 binding.pbSubtitle.visibility = View.GONE
                 throw e
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
+                // Bat ca Error (OOM/Media3) de khong lam thoat app (T5).
                 binding.pbSubtitle.visibility = View.GONE
-                binding.tvSubtitleStatus.text = getString(R.string.subtitle_error_empty)
-                toast(getString(R.string.toast_subtitle_error, e.message ?: ""))
+                binding.tvSubtitleStatus.text = t.message ?: getString(R.string.subtitle_error_empty)
+                toast(getString(R.string.toast_subtitle_error, t.message ?: ""))
             } finally {
                 binding.btnCreateNarration.visibility =
                     if (cues.isEmpty()) View.GONE else View.VISIBLE
@@ -291,16 +313,30 @@ class SubtitleActivity : AppCompatActivity() {
             toast(getString(R.string.subtitle_cues_empty))
             return
         }
-        // Auto-run tu nut "Bat dau xu ly" khong can hoi lai; mo tu lich sử thi co xac nhan.
-        if (rec.dubPath.isNotEmpty() && !autoRun) {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.dialog_replace_narration_title)
-                .setMessage(R.string.dialog_replace_narration_message)
-                .setNegativeButton(R.string.dialog_cancel, null)
-                .setPositiveButton(R.string.dialog_replace) { _, _ -> runNarration(cues.toList()) }
-                .show()
-        } else {
-            runNarration(cues.toList())
+        binding.btnCreateNarration.isEnabled = false
+        lifecycleScope.launch {
+            // Kiem tra giọng TRUOC khi hoi xac nhan: thiet bi khong co giong vi-VN
+            // thi bao ngay, khong de nguoi dung bam xong moi crash (T5).
+            val voiceReady = runCatching { narrationProcessor.hasVietnameseVoice() }
+                .getOrDefault(false)
+            binding.btnCreateNarration.isEnabled = true
+            if (!voiceReady) {
+                binding.tvSubtitleStatus.text = getString(R.string.tts_missing_hint)
+                toast(getString(R.string.tts_missing_hint))
+                return@launch
+            }
+
+            // Auto-run tu nut "Bat dau xu ly" khong can hoi lai; mo tu lich sử thi co xac nhan.
+            if (rec.dubPath.isNotEmpty() && !autoRun) {
+                MaterialAlertDialogBuilder(this@SubtitleActivity)
+                    .setTitle(R.string.dialog_replace_narration_title)
+                    .setMessage(R.string.dialog_replace_narration_message)
+                    .setNegativeButton(R.string.dialog_cancel, null)
+                    .setPositiveButton(R.string.dialog_replace) { _, _ -> runNarration(cues.toList()) }
+                    .show()
+            } else {
+                runNarration(cues.toList())
+            }
         }
     }
 
@@ -315,7 +351,10 @@ class SubtitleActivity : AppCompatActivity() {
                 binding.pbSubtitle.isIndeterminate = false
                 binding.pbSubtitle.progress = 0
                 // Luu phu de da sua truoc de MP4 khong lech text so voi .srt.
-                persistSubtitleNow(selectedSourceLanguage)
+                if (!persistSubtitleNow(selectedSourceLanguage)) {
+                    toast(getString(R.string.subtitle_save_mismatch))
+                    return@launch
+                }
                 val result = narrationProcessor.process(
                     record = rec,
                     cues = cueSnapshot,
@@ -333,10 +372,10 @@ class SubtitleActivity : AppCompatActivity() {
             } catch (e: CancellationException) {
                 binding.pbSubtitle.visibility = View.GONE
                 throw e
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
                 binding.pbSubtitle.visibility = View.GONE
-                binding.tvSubtitleStatus.text = e.message ?: getString(R.string.subtitle_error_empty)
-                toast(getString(R.string.toast_subtitle_error, e.message ?: ""))
+                binding.tvSubtitleStatus.text = t.message ?: getString(R.string.subtitle_error_empty)
+                toast(getString(R.string.toast_narration_error, t.message ?: ""))
             } finally {
                 binding.btnCreateNarration.isEnabled = true
                 binding.btnGenerateSubtitle.isEnabled = true
@@ -344,17 +383,26 @@ class SubtitleActivity : AppCompatActivity() {
         }
     }
 
-    /** Ghi .srt + cau goc va cap nhat SQLite de lich sử biet ban xu ly co that. */
-    private suspend fun persistSubtitleNow(sourceLanguage: String) {
-        val content = withContext(Dispatchers.Default) { SrtWriter.write(cues.toList()) }
+    /**
+     * Ghi .srt + cau goc va cap nhat SQLite de lich sử biet ban xu ly co that.
+     * Doc lai ngay sau khi ghi de dam bao so cue khong bi lech (T2).
+     */
+    private suspend fun persistSubtitleNow(sourceLanguage: String): Boolean {
+        val snapshot = cues.toList()
+        if (snapshot.isEmpty()) return false
+        val content = withContext(Dispatchers.Default) { SrtWriter.write(snapshot) }
+        val parsedCount = withContext(Dispatchers.Default) { SrtWriter.parse(content).size }
+        if (parsedCount != snapshot.size) return false
+
         val path = withContext(Dispatchers.IO) {
-            processor.repository.save(recordId, content)
-            processor.repository.saveSources(recordId, cues.map { it.source })
-            processor.repository.pathFor(recordId)
+            repository.save(recordId, content)
+            repository.saveSources(recordId, snapshot.map { it.source })
+            repository.pathFor(recordId)
         }
         withContext(Dispatchers.IO) {
             db.updateSubtitle(recordId, path, "done", "vi", sourceLanguage)
         }
+        return true
     }
 
     private fun saveSrt() {
@@ -363,22 +411,25 @@ class SubtitleActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            persistSubtitleNow(selectedSourceLanguage)
-            toast(getString(R.string.toast_subtitle_created))
-            refreshFromRecord()
+            if (persistSubtitleNow(selectedSourceLanguage)) {
+                toast(getString(R.string.toast_subtitle_saved))
+                refreshFromRecord()
+            } else {
+                toast(getString(R.string.subtitle_save_mismatch))
+            }
         }
     }
 
     private fun openPlayer() {
         val rec = record ?: return
         val uri = runCatching { MediaUri.resolve(this, rec.filePath) }.getOrNull() ?: return
-        val srtPath = processor.repository.pathFor(recordId)
+        val srtPath = repository.pathFor(recordId)
+        val srtUri = srtPath.takeIf { File(it).exists() }?.let { MediaUri.resolve(this, it) }
         val intent = Intent(this, PlayerActivity::class.java).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             putExtra(PlayerActivity.EXTRA_RECORD_ID, recordId)
             putExtra(PlayerActivity.EXTRA_VIDEO_URI, uri.toString())
-            if (File(srtPath).exists()) {
-                putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
-            }
+            srtUri?.let { putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, it.toString()) }
             putExtra(PlayerActivity.EXTRA_START_VARIANT, PlayerActivity.VARIANT_VIETSUB)
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }
@@ -395,14 +446,14 @@ class SubtitleActivity : AppCompatActivity() {
             toast(getString(R.string.toast_file_missing))
             return
         }
-        val srtPath = processor.repository.pathFor(recordId)
+        val srtPath = repository.pathFor(recordId)
+        val srtUri = srtPath.takeIf { File(it).exists() }?.let { MediaUri.resolve(this, it) }
         val intent = Intent(this, PlayerActivity::class.java).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             putExtra(PlayerActivity.EXTRA_RECORD_ID, recordId)
             putExtra(PlayerActivity.EXTRA_VIDEO_URI, originalUri.toString())
             putExtra(PlayerActivity.EXTRA_DUB_URI, dubUri.toString())
-            if (File(srtPath).exists()) {
-                putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
-            }
+            srtUri?.let { putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, it.toString()) }
             putExtra(PlayerActivity.EXTRA_START_VARIANT, PlayerActivity.VARIANT_NARRATION)
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }

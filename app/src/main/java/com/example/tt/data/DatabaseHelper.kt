@@ -354,6 +354,13 @@ class DatabaseHelper(context: Context) :
         }
     }
 
+    /** Luu giong ngay khi nguoi doi, khong can doi den luc mux thanh cong. */
+    fun updateVoice(id: Long, voice: String) {
+        writableDatabase.use { db ->
+            db.update(T_DOWNLOADS, ContentValues().apply { put(C_VOICE, voice) }, "$C_ID = ?", arrayOf(id.toString()))
+        }
+    }
+
     /** Phase D: luu ban MP4 thuyet minh + giong da dung. */
     fun updateDub(id: Long, dubPath: String, voice: String, status: String) {
         val cv = ContentValues().apply {

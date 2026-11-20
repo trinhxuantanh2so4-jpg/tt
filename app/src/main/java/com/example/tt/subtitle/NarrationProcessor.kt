@@ -10,6 +10,7 @@ import com.example.tt.ui.MediaUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import kotlin.coroutines.coroutineContext
 
@@ -24,6 +25,19 @@ class NarrationProcessor(private val context: Context) {
     data class Progress(val message: String, val percent: Int)
 
     data class Result(val dubPath: String, val wavPath: String)
+
+    /**
+     * Kiem tra nhanh truoc khi bat dau (T5). Co timeout de khong treo app neu
+     * TextToSpeech khoi tao khong goi callback (may khong co engine TTS).
+     */
+    suspend fun hasVietnameseVoice(): Boolean = withTimeout(10_000L) {
+        val tts = SystemTtsEngine(context)
+        try {
+            tts.ensureReady() && tts.isVietnameseAvailable()
+        } finally {
+            tts.shutdown()
+        }
+    }
 
     suspend fun process(
         record: DownloadRecord,

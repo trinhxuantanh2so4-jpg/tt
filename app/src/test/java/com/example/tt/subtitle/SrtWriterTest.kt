@@ -55,4 +55,22 @@ class SrtWriterTest {
         assertTrue(SrtWriter.write(emptyList()).isEmpty())
         assertTrue(SrtWriter.parse("  \n ").isEmpty())
     }
+
+    @Test
+    fun `sua text xong ghi va doc lai van giu nguyen so cue va noi dung`() {
+        // Mo phong luong: nguoi dung sua cau 2 roi bam "Luu file .srt", thoat app, mo lai.
+        val edited = listOf(
+            SubtitleCue(1, 0, 1200, "gốc 1", "Đã sửa câu 1"),
+            SubtitleCue(2, 1500, 3000, "gốc 2", "Đã sửa\nhai dòng"),
+            SubtitleCue(3, 3200, 5000, "gốc 3", "Giữ nguyên")
+        )
+
+        val content = SrtWriter.write(edited)
+        val parsed = SrtWriter.parse(content)
+
+        assertEquals(edited.size, parsed.size)
+        assertEquals(edited.map { it.text }, parsed.map { it.text })
+        assertEquals(edited.map { it.index }, parsed.map { it.index })
+        assertEquals(edited.map { it.startMs }, parsed.map { it.startMs })
+    }
 }

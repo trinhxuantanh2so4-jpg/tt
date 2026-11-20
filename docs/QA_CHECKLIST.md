@@ -131,3 +131,29 @@ H. Tải lại cùng video giữ bản cũ: PASS / FAIL
 Message lỗi tiếng Việt hiện trên app (nếu có): ...
 Ảnh chụp màn hình (đã che key): ...
 ```
+
+## 8. Form QA sau bản sửa lỗi (2026-11-20)
+
+Bản sửa theo [`PLAN_FIX_SUBTITLE_NARRATION.md`](PLAN_FIX_SUBTITLE_NARRATION.md). Vì máy hiện
+**không có giọng vi-VN**, ca tạo MP4 thuyết minh chỉ cần đạt "báo lỗi rõ, không crash";
+sau khi cài gói giọng tiếng Việt mới đánh giá chất lượng giọng/âm nền.
+
+```text
+APK mới đã cài (release v1.0.0): có / không
+Thiết bị: giả lập / máy thật | Android ... | có giọng vi-VN: có/không
+
+1. Sửa 1 câu → Lưu file .srt → thoát màn → mở lại:
+   câu sửa còn: có/không | lời gốc còn: có/không | số câu không đổi: có/không
+2. Lịch sử: badge Vietsub hiện đúng: có/không | badge Thuyết minh (nếu có file): có/không
+   nhấn card → chọn được bản: Gốc / Có phụ đề / Thuyết minh
+3. Từ lịch sử đổi giọng (Nam 1.25x) + "Chỉ thuyết minh" → thoát/mở lại:
+   giọng giữ: có/không | âm nền giữ: có/không
+4. Bấm "Tạo thuyết minh" khi KHÔNG có giọng vi-VN:
+   có hiện hướng dẫn cài giọng: có/không | app có tự thoát: có/không
+5. Bấm "Tạo thuyết minh" khi ĐÃ có giọng vi-VN (nếu có):
+   tạo được MP4: có/không | nghe có phụ đề chồng: có/không | giọng đúng lựa chọn: có/không
+6. Player đổi Gốc ↔ Vietsub ↔ Thuyết minh: không crash: có/không | phụ đề đúng bản: có/không
+7. Xoá bản xử lý: sạch file: có/không | video gốc vẫn mở: có/không
+8. Nếu vẫn có lỗi: message tiếng Việt hiện trên app + toast "Lỗi trước đó: ..." lúc mở app:
+   ...
+```

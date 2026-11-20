@@ -1,7 +1,6 @@
 package com.example.tt
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -63,7 +62,9 @@ class HistoryActivity : AppCompatActivity() {
             onToggleFavorite = { toggleFavorite(it) },
             onDelete = { deleteWithUndo(it) },
             onSubtitle = { showProcessMenu(it) },
-            onMore = { showProcessMenu(it) }
+            onMore = { showProcessMenu(it) },
+            hasSubtitle = { hasSubtitle(it) },
+            hasDub = { hasDub(it) }
         )
         binding.rvHistory.layoutManager = LinearLayoutManager(this)
         binding.rvHistory.adapter = adapter
@@ -98,7 +99,20 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun reload() {
         lifecycleScope.launch {
-            val list = withContext(Dispatchers.IO) { db.getAllDownloads() }
+            val list = withContext(Dispatchers.IO) {
+                val raw = db.getAllDownloads()
+                raw.map { rec ->
+                    // Tu heal ban cu: co file .srt nhung SQLite chua luu path -> badge/selection bi mat.
+                    if (rec.subtitlePath.isBlank()) {
+                        val path = SubtitleRepository(this@HistoryActivity).pathFor(rec.id)
+                        if (File(path).exists()) {
+                            val src = rec.subtitleLang.ifBlank { "zh" }
+                            db.updateSubtitle(rec.id, path, "done", "vi", src)
+                            rec.copy(subtitlePath = path, processStatus = "done", subtitleLang = src)
+                        } else rec
+                    } else rec
+                }
+            }
             allItems = list
             applyFilter()
         }
@@ -193,13 +207,14 @@ class HistoryActivity : AppCompatActivity() {
 
     // ---------------- Chon ban phat ----------------
     private fun hasSubtitle(rec: DownloadRecord): Boolean {
-        val dbPath = rec.subtitlePath.isNotEmpty() && File(rec.subtitlePath).exists()
+        val dbPath = rec.subtitlePath.isNotBlank() &&
+            MediaUri.resolve(this, rec.subtitlePath) != null
         return dbPath || File(SubtitleRepository(this).pathFor(rec.id)).exists()
     }
 
     private fun hasDub(rec: DownloadRecord): Boolean =
-        rec.dubPath.isNotEmpty() &&
-            runCatching { MediaUri.resolve(this, rec.dubPath) }.getOrNull() != null
+        rec.dubPath.isNotBlank() &&
+            MediaUri.resolve(this, rec.dubPath) != null
 
     private fun showPlaybackChooser(rec: DownloadRecord) {
         val choices = buildList {
@@ -236,14 +251,16 @@ class HistoryActivity : AppCompatActivity() {
         val srtPath = SubtitleRepository(this).pathFor(rec.id)
             .takeIf { File(it).exists() }
             ?: rec.subtitlePath.takeIf { it.isNotBlank() && File(it).exists() }
+        val srtUri = srtPath?.let { MediaUri.resolve(this, it) }
 
         startActivity(
             Intent(this, PlayerActivity::class.java).apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 putExtra(PlayerActivity.EXTRA_RECORD_ID, rec.id)
                 originalUri?.let { putExtra(PlayerActivity.EXTRA_VIDEO_URI, it.toString()) }
                 dubUri?.let { putExtra(PlayerActivity.EXTRA_DUB_URI, it.toString()) }
-                if (variant != PlayVariant.ORIGINAL && srtPath != null) {
-                    putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, Uri.parse(srtPath))
+                if (variant != PlayVariant.ORIGINAL && srtUri != null) {
+                    putExtra(PlayerActivity.EXTRA_SUBTITLE_URI, srtUri.toString())
                 }
                 putExtra(PlayerActivity.EXTRA_START_VARIANT, variant.key)
                 putExtra(PlayerActivity.EXTRA_TITLE, rec.title)

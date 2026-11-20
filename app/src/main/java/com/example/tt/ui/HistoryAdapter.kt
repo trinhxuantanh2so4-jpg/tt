@@ -20,7 +20,10 @@ class HistoryAdapter(
     private val onToggleFavorite: (DownloadRecord) -> Unit,
     private val onDelete: (DownloadRecord) -> Unit,
     private val onSubtitle: (DownloadRecord) -> Unit,
-    private val onMore: (DownloadRecord) -> Unit
+    private val onMore: (DownloadRecord) -> Unit,
+    /** Badge phải fallback theo file: bản cũ có SRT/MP4 nhưng SQLite có thể chưa lưu path. */
+    private val hasSubtitle: (DownloadRecord) -> Boolean,
+    private val hasDub: (DownloadRecord) -> Boolean
 ) : ListAdapter<DownloadRecord, HistoryAdapter.VH>(DIFF) {
 
     class VH(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -35,8 +38,8 @@ class HistoryAdapter(
             tvTitle.text = rec.title
             tvAuthor.text = rec.author
             val badges = buildList {
-                if (rec.subtitlePath.isNotEmpty()) add(context.getString(R.string.badge_vietsub))
-                if (rec.dubPath.isNotEmpty()) add(context.getString(R.string.badge_narration))
+                if (hasSubtitle(rec)) add(context.getString(R.string.badge_vietsub))
+                if (hasDub(rec)) add(context.getString(R.string.badge_narration))
             }
             val badgeText = if (badges.isEmpty()) "" else " · " + badges.joinToString(" · ")
             tvMeta.text = "${rec.quality} · ${formatBytes(rec.fileSize)} · ${relativeTime(rec.createdAt)}$badgeText"
