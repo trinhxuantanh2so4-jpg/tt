@@ -1,7 +1,9 @@
 # ✅ QA_CHECKLIST — Rà soát & sửa lỗi
 
 Phạm vi: 2 tab TikTok/Douyin, vietsub, thuyết minh, lịch sử, player.
-Cập nhật: 2026-11-20.
+Cập nhật: 2026-11-21.
+
+> Bản rút gọn để vừa test vừa điền/báo lại: [`QA_TASK_LIST.md`](QA_TASK_LIST.md) — checklist đầy đủ ở các mục bên dưới.
 
 ## 1. Lỗi đã tìm thấy và sửa
 
