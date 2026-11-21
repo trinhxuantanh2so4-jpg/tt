@@ -7,9 +7,9 @@
 
 | # | Vấn đề | Nguyên nhân | Cách sửa | Trạng thái |
 |---|--------|-------------|----------|------------|
-| U1 | Tạo phụ đề có lúc text trùng “Lời gốc”, không báo lỗi | `Translator.translateAll()` bắt lỗi rồi trả `null`, `CueBuilder` giữ câu gốc nên người dùng tưởng đã dịch | Báo lỗi rõ khi không tải được model ML Kit / không dịch được câu nào; hiện số câu đã dịch trong tiến độ | ✅ code, ☐ CI |
-| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; clip dài hơn cửa sổ của câu (mốc `startMs` → câu kế tiếp) | Ước lượng tốc độ theo độ dài câu/cửa sổ, giới hạn 0.85–1.45×; nếu vẫn dài thì ép nhịp tối đa 1.45× trong `NarrationTimeline.fitToWindow()` | ✅ code + unit test, ☐ CI |
-| U3 | Giọng nghe chưa hay | `pickVoice()` ưu tiên giọng offline đầu tiên, bỏ qua giọng Google/Neural chất lượng cao | Ưu tiên tên chứa `neural/studio/google/natural/premium/hd`; vẫn giữ theo giới tính Nữ/Nam | ✅ code, ☐ CI |
+| U1 | Tạo phụ đề có lúc text trùng “Lời gốc”, không báo lỗi | `Translator.translateAll()` bắt lỗi rồi trả `null`, `CueBuilder` giữ câu gốc nên người dùng tưởng đã dịch | Báo lỗi rõ khi không tải được model ML Kit / không dịch được câu nào; hiện số câu đã dịch trong tiến độ | ✅ (`f7d3485`, run `44849096548`) |
+| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; clip dài hơn cửa sổ của câu (mốc `startMs` → câu kế tiếp) | Ước lượng tốc độ theo độ dài câu/cửa sổ, giới hạn 0.85–1.45×; nếu vẫn dài thì ép nhịp tối đa 1.45× trong `NarrationTimeline.fitToWindow()` | ✅ (`f7d3485`, run `44849096548`, unit test JVM pass) |
+| U3 | Giọng nghe chưa hay | `pickVoice()` ưu tiên giọng offline đầu tiên, bỏ qua giọng Google/Neural chất lượng cao | Ưu tiên tên chứa `neural/studio/google/natural/premium/hd`; vẫn giữ theo giới tính Nữ/Nam | ✅ (`f7d3485`, run `44849096548`) |
 | U4 | QA khó kiểm tra “có dịch chưa / có khớp chưa” | Form cũ chỉ hỏi PASS/FAIL chung | Thêm form §9 trong `QA_CHECKLIST.md` | ✅ |
 
 ### Giới hạn của phần A
