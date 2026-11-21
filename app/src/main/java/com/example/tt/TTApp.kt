@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import com.example.tt.network.dtk.DtkConfig
+import com.example.tt.subtitle.GeminiConfig
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -22,6 +23,7 @@ class TTApp : Application() {
         super.onCreate()
         // Cấu hình API DTK lưu trên máy; mặc định rỗng → dùng nguồn cũ.
         DtkConfig.init(this)
+        GeminiConfig.init(this)
         installCrashLog()
         reportLastCrash()
     }

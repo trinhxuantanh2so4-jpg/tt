@@ -136,6 +136,68 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_24"
+                android:text="@string/gemini_settings_title"
+                android:textColor="@color/accent"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_8"
+                android:text="@string/gemini_settings_intro"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilGeminiKey"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_12"
+                android:hint="@string/gemini_api_key"
+                app:boxStrokeColor="@color/accent"
+                app:endIconMode="password_toggle"
+                app:endIconTint="@color/text_secondary"
+                app:hintTextColor="@color/accent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etGeminiKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:textColor="@color/text_primary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvGeminiStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_12"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTestGemini"
+                style="@style/Widget.TT.Button.Tonal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_12"
+                android:text="@string/gemini_test"
+                app:icon="@drawable/ic_refresh" />
+
+            <MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="@dimen/space_24"
+                app:dividerColor="@color/divider" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/space_20"
                 android:text="@string/api_settings_footer"
                 android:textColor="@color/text_secondary"

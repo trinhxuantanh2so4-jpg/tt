@@ -15,6 +15,7 @@ import com.example.tt.data.DownloadRecord
 import com.example.tt.databinding.ActivitySubtitleBinding
 import com.example.tt.network.VideoPlatform
 import com.example.tt.subtitle.CueBuilder
+import com.example.tt.subtitle.GeminiConfig
 import com.example.tt.subtitle.NarrationProcessor
 import com.example.tt.subtitle.SubtitleCue
 import com.example.tt.subtitle.SubtitleProcessor
@@ -140,6 +141,7 @@ class SubtitleActivity : AppCompatActivity() {
         setupCuesRecycler()
         setupLanguageListeners()
         setupNarrationControls()
+        setupGeminiSwitch()
         binding.btnGenerateSubtitle.setOnClickListener { generate() }
         binding.btnSaveSrt.setOnClickListener { saveSrt() }
         binding.btnEditRawSrt.setOnClickListener { showSrtEditor() }
@@ -163,6 +165,11 @@ class SubtitleActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        setupGeminiSwitch()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         translatedSummary?.let { outState.putString(KEY_TRANSLATED_SUMMARY, it) }
@@ -184,6 +191,17 @@ class SubtitleActivity : AppCompatActivity() {
         binding.rvCues.layoutManager = LinearLayoutManager(this)
         binding.rvCues.setItemViewCacheSize(0)
         binding.rvCues.adapter = subtitleAdapter
+    }
+
+    private fun setupGeminiSwitch() {
+        val hasKey = GeminiConfig.isEnabled()
+        binding.switchUseGemini.isChecked = hasKey
+        binding.switchUseGemini.isEnabled = hasKey
+        if (!hasKey) {
+            binding.switchUseGemini.text = "${getString(R.string.subtitle_use_gemini)} (Chưa nhập API Key)"
+        } else {
+            binding.switchUseGemini.text = getString(R.string.subtitle_use_gemini)
+        }
     }
 
     private fun setupLanguageListeners() {
@@ -296,10 +314,15 @@ class SubtitleActivity : AppCompatActivity() {
 
     private fun generate() {
         val source = selectedSourceLanguage
+        val useGemini = binding.switchUseGemini.isChecked
         binding.btnCreateNarration.visibility = View.GONE
         lifecycleScope.launch {
             try {
-                val path = processor.process(record = record!!, sourceLanguage = source) { progress ->
+                val path = processor.process(
+                    record = record!!,
+                    sourceLanguage = source,
+                    useGemini = useGemini
+                ) { progress ->
                     binding.pbSubtitle.visibility = View.VISIBLE
                     binding.pbSubtitle.isIndeterminate = false
                     binding.pbSubtitle.progress = progress.percent

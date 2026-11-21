@@ -222,6 +222,19 @@
     <string name="api_settings_https_only">Base URL phải bắt đầu bằng https://</string>
     <string name="api_settings_footer">Base URL phải dùng HTTPS. Với self-host hãy đặt reverse proxy TLS trước cổng 8000.</string>
 
+    <!-- ===== Gemini AI ===== -->
+    <string name="gemini_settings_title">Cấu hình Gemini AI</string>
+    <string name="gemini_settings_intro">Dùng Gemini AI để tối ưu hóa văn phong phụ đề giúp thuyết minh tự nhiên hơn. Đăng ký key miễn phí tại Google AI Studio.</string>
+    <string name="gemini_api_key">Gemini API Key</string>
+    <string name="gemini_test">Kiểm tra Gemini Key</string>
+    <string name="gemini_status_testing">Đang kiểm tra Gemini Key…</string>
+    <string name="gemini_status_ok">Gemini Key hợp lệ!</string>
+    <string name="gemini_status_fail">Lỗi Gemini: %1$s</string>
+    <string name="gemini_save_success">Đã lưu Gemini API Key</string>
+    <string name="gemini_clear_success">Đã xoá Gemini API Key</string>
+
+    <string name="subtitle_use_gemini">Tối ưu văn phong bằng Gemini AI</string>
+    <string name="subtitle_progress_gemini">Gemini đang trau chuốt phụ đề…</string>
 
     <!-- ===== Chung ===== -->
     <string name="back">Quay lại</string>

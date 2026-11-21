@@ -22,6 +22,7 @@ class SubtitleProcessor(private val context: Context) {
     suspend fun process(
         record: DownloadRecord,
         sourceLanguage: String,
+        useGemini: Boolean = false,
         onProgress: (Progress) -> Unit
     ): String {
         // onProgress co the duoc goi tu thread IO (vd. callback tai model),
@@ -56,7 +57,7 @@ class SubtitleProcessor(private val context: Context) {
         coroutineContext.ensureActive()
         if (lines.isEmpty()) throw IllegalStateException("Không nhận dạng được giọng nói trong video")
 
-        report(Progress("Đang dịch sang tiếng Việt…", 70))
+        report(Progress("Đang dịch sang tiếng Việt…", 60))
         val translations = withContext(Dispatchers.IO) { Translator.translateAll(lines.map { it.text }, sourceLanguage) }
         coroutineContext.ensureActive()
         val translatedCount = translations.count { it != null }
@@ -64,12 +65,21 @@ class SubtitleProcessor(private val context: Context) {
             Progress(
                 if (translatedCount == lines.size) "Đã dịch ${translatedCount}/${lines.size} câu sang tiếng Việt"
                 else "Đã dịch ${translatedCount}/${lines.size} câu (câu còn lại giữ nguyên)",
-                88
+                75
             )
         )
 
+        var cues = CueBuilder.build(lines, translations)
+
+        if (useGemini && GeminiConfig.isEnabled()) {
+            report(Progress("Gemini đang trau chuốt phụ đề…", 80))
+            cues = withContext(Dispatchers.IO) {
+                GeminiService.optimizeForNarration(cues)
+            }
+            coroutineContext.ensureActive()
+        }
+
         report(Progress("Đang tạo file phụ đề…", 90))
-        val cues = CueBuilder.build(lines, translations)
         val path = withContext(Dispatchers.IO) {
             repository.save(record.id, SrtWriter.write(cues))
             repository.saveSources(record.id, cues.map { it.source })
