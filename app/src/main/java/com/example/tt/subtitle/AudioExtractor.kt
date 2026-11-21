@@ -13,6 +13,10 @@ import kotlin.math.min
  * Giai ma track audio cua video thanh PCM float, mono, 16 kHz - dinh dang ma
  * Moonshine mong doi. Thoi gian (timeline) cua Moonshine bat dau tu 0 nen ta chen
  * doan im lang neu track audio bat dau tre hon video.
+ *
+ * Tiet kiem bo nho: moi chunk duoc downmix + resample ve 16k NGAY sau khi giai ma,
+ * nen ta khong bao gio giu dung luc 3 ban PCM (src, mono, merged) cua toan video.
+ * May co heap ~192MB de bi OOM khi video dai.
  */
 object AudioExtractor {
 
@@ -47,7 +51,9 @@ object AudioExtractor {
             codec.start()
 
             val info = MediaCodec.BufferInfo()
-            val chunks = mutableListOf<Chunk>()
+            val chunks = ArrayList<Chunk>()
+            // Tai su dung 1 buffer doc decoder thay vi cap phat ShortArray moi frame.
+            var scratch = ShortArray(0)
             var inputEos = false
             var outputEos = false
 
@@ -82,11 +88,24 @@ object AudioExtractor {
                         ) {
                             out.position(info.offset)
                             out.limit(info.offset + info.size)
-                            val shorts = ShortArray(info.size / 2)
-                            out.asShortBuffer().get(shorts)
-                            val mono = if (channels > 1) downmix(shorts, channels) else shorts
-                            val floats = FloatArray(mono.size) { mono[it] / 32768f }
-                            chunks.add(Chunk(info.presentationTimeUs, floats))
+                            val count = info.size / 2
+                            if (scratch.size < count) scratch = ShortArray(count)
+                            out.asShortBuffer().get(scratch, 0, count)
+
+                            val frames = count / channels
+                            val mono = FloatArray(frames) { i ->
+                                var sum = 0
+                                var ch = 0
+                                while (ch < channels) {
+                                    sum += scratch[i * channels + ch].toInt()
+                                    ch++
+                                }
+                                (sum / channels) / 32768f
+                            }
+                            val at16k =
+                                if (sampleRate == TARGET_SAMPLE_RATE) mono
+                                else resample(mono, sampleRate, TARGET_SAMPLE_RATE)
+                            chunks.add(Chunk(info.presentationTimeUs, at16k))
                         }
                         codec.releaseOutputBuffer(outIndex, false)
                         if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
@@ -99,28 +118,14 @@ object AudioExtractor {
             if (chunks.isEmpty()) {
                 throw IllegalStateException("Không giải mã được âm thanh từ video")
             }
-            val merged = mergeChunks(chunks, sampleRate)
-            val resampled = if (sampleRate == TARGET_SAMPLE_RATE) {
-                merged
-            } else {
-                resample(merged, sampleRate, TARGET_SAMPLE_RATE)
-            }
-            return PcmAudio(resampled, TARGET_SAMPLE_RATE)
+            // chunks da la 16k mono; mergeChunks chi con them mot ban cuoi cung.
+            val merged = mergeChunks(chunks, TARGET_SAMPLE_RATE)
+            chunks.clear()
+            return PcmAudio(merged, TARGET_SAMPLE_RATE)
         } finally {
             codec?.let { c -> runCatching { c.stop(); c.release() } }
             extractor.release()
         }
-    }
-
-    private fun downmix(shorts: ShortArray, channels: Int): ShortArray {
-        val frames = shorts.size / channels
-        val out = ShortArray(frames)
-        for (i in 0 until frames) {
-            var sum = 0
-            for (ch in 0 until channels) sum += shorts[i * channels + ch].toInt()
-            out[i] = (sum / channels).coerceIn(-32768, 32767).toShort()
-        }
-        return out
     }
 
     /** Chen doan im lang vao cac khoang trong de giu dung timeline. */

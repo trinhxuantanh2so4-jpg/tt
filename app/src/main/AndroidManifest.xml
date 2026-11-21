@@ -9,9 +9,11 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
+    <!-- Pipeline ASR giu PCM + model trong bo nho -> can heap lon hon muc mac dinh 192MB. -->
     <application
         android:name=".TTApp"
         android:allowBackup="true"
+        android:largeHeap="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"

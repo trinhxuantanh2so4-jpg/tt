@@ -159,6 +159,7 @@
     <string name="subtitle_processing">Đang xử lý…</string>
     <string name="subtitle_done">Hoàn tất tạo phụ đề ✓</string>
     <string name="subtitle_error_empty">Video không có âm thanh hoặc không nhận dạng được lời nói.</string>
+    <string name="error_low_memory">Thiết bị hết bộ nhớ khi xử lý. Hãy thử video ngắn hơn, tắt “Tối ưu văn phong bằng Gemini”, đóng bớt ứng dụng khác rồi thử lại.</string>
     <string name="subtitle_progress_model">Đang tải model nhận dạng…</string>
     <string name="subtitle_progress_asr">Đang nhận dạng giọng nói…</string>
     <string name="subtitle_progress_translate">Đang dịch sang tiếng Việt…</string>

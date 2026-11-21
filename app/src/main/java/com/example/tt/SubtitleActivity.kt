@@ -345,8 +345,9 @@ class SubtitleActivity : AppCompatActivity() {
             } catch (t: Throwable) {
                 // Bat ca Error (OOM/Media3) de khong lam thoat app (T5).
                 binding.pbSubtitle.visibility = View.GONE
-                binding.tvSubtitleStatus.text = t.message ?: getString(R.string.subtitle_error_empty)
-                toast(getString(R.string.toast_subtitle_error, t.message ?: ""))
+                val message = readableError(t)
+                binding.tvSubtitleStatus.text = message
+                toast(getString(R.string.toast_subtitle_error, message))
             } finally {
                 binding.btnCreateNarration.visibility =
                     if (cues.isEmpty()) View.GONE else View.VISIBLE
@@ -422,8 +423,9 @@ class SubtitleActivity : AppCompatActivity() {
                 throw e
             } catch (t: Throwable) {
                 binding.pbSubtitle.visibility = View.GONE
-                binding.tvSubtitleStatus.text = t.message ?: getString(R.string.subtitle_error_empty)
-                toast(getString(R.string.toast_narration_error, t.message ?: ""))
+                val message = readableError(t)
+                binding.tvSubtitleStatus.text = message
+                toast(getString(R.string.toast_narration_error, message))
             } finally {
                 binding.btnCreateNarration.isEnabled = true
                 binding.btnGenerateSubtitle.isEnabled = true
@@ -551,6 +553,13 @@ class SubtitleActivity : AppCompatActivity() {
             putExtra(PlayerActivity.EXTRA_TITLE, rec.title)
         }
         startActivity(intent)
+    }
+
+    /** OOM co message tieng Anh kho hieu -> thay bang huong dan tieng Viet. */
+    private fun readableError(t: Throwable): String = when (t) {
+        is OutOfMemoryError -> getString(R.string.error_low_memory)
+        else -> t.message?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.subtitle_error_empty)
     }
 
     private fun toast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
