@@ -144,7 +144,6 @@ class PlayerActivity : AppCompatActivity() {
             player.trackSelectionParameters = TrackSelectionParameters.Builder(this)
                 .setPreferredTextLanguage("vi")
                 .setSelectUndeterminedTextLanguage(true)
-                .setDisabledTextTrackSelectionFlags(0)
                 .build()
 
             val builder = MediaItem.Builder().setUri(source.videoUri)
