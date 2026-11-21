@@ -80,4 +80,6 @@ dependencies {
 
     // Unit test JVM (parser Douyin / URL / SRT) - chay trong CI
     testImplementation(libs.junit)
+    // android.jar ban org.json thanh stub "not mocked" -> can ban JVM that cho test.
+    testImplementation("org.json:json:20240303")
 }
