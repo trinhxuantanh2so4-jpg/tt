@@ -232,6 +232,16 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditRawSrt"
+                style="@style/Widget.TT.Button.Tonal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_8"
+                android:text="@string/action_edit_raw_srt"
+                android:visibility="gone"
+                app:icon="@drawable/ic_translate" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCreateNarration"
                 style="@style/Widget.TT.Button.Tonal"
                 android:layout_width="match_parent"

@@ -101,15 +101,16 @@ class NarrationProcessor(private val context: Context) {
                 val windowMs = ((speech.getOrNull(index + 1)?.startMs ?: cue.endMs) - cue.startMs)
                     .coerceIn(800L, 30_000L)
                 val estimatedMs = cue.text.length.toLong() * 1_000L / 13L
-                val ratio = (estimatedMs.toFloat() / windowMs.toFloat()).coerceIn(0.85f, 1.45f)
+                // Gioi han hep lai de giong khong bi doc qua nhanh (QA bao "qua nhanh").
+                val ratio = (estimatedMs.toFloat() / windowMs.toFloat()).coerceIn(0.9f, 1.3f)
                 val cueVoice = voice.copy(
-                    speechRate = (voice.speechRate * ratio).coerceIn(0.7f, 1.6f)
+                    speechRate = (voice.speechRate * ratio).coerceIn(0.8f, 1.4f)
                 )
 
                 val clip = tts.synthesize(cue.text, cueVoice)
                 if (clip != null && clip.samples.isNotEmpty()) {
                     val timelineClip = NarrationTimeline.Clip(clip.samples, clip.sampleRate, cue.startMs)
-                    // Phuong an du phong: neu TTS van dai hon cua so thi ep nhip nhe.
+                    // Cat im lang dau/cuoi + chap đuoi neu van dai hơn cửa sổ.
                     clips.add(NarrationTimeline.fitToWindow(timelineClip, windowMs))
                 }
             }

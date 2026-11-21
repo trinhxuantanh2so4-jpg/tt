@@ -150,6 +150,10 @@
     <string name="subtitle_hint_process">Tự động nhận dạng lời nói bằng Moonshine AI rồi dịch sang tiếng Việt bằng ML Kit.</string>
     <string name="action_generate_subtitle">Tạo phụ đề</string>
     <string name="action_save_srt">Lưu file .srt</string>
+    <string name="action_edit_raw_srt">Xem / sửa nội dung .srt</string>
+    <string name="dialog_srt_editor_title">Nội dung file .srt</string>
+    <string name="dialog_srt_editor_message">Sửa text hoặc mốc giờ rồi lưu. Mỗi câu gồm: số thứ tự, dòng giờ (HH:MM:SS,mmm --&gt; HH:MM:SS,mmm), rồi nội dung. Lưu xong nhấn “Lưu file .srt” để ghi vào máy.</string>
+    <string name="toast_srt_parse_error">Không đọc được file .srt. Kiểm tra lại số thứ tự và dòng giờ rồi thử lại.</string>
     <string name="action_open_player">Xem video có phụ đề</string>
     <string name="subtitle_language_source">Ngôn ngữ video</string>
     <string name="subtitle_processing">Đang xử lý…</string>
@@ -217,6 +221,7 @@
     <string name="api_settings_missing">Nhập đầy đủ Base URL và API key</string>
     <string name="api_settings_https_only">Base URL phải bắt đầu bằng https://</string>
     <string name="api_settings_footer">Base URL phải dùng HTTPS. Với self-host hãy đặt reverse proxy TLS trước cổng 8000.</string>
+
 
     <!-- ===== Chung ===== -->
     <string name="back">Quay lại</string>

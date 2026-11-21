@@ -176,13 +176,19 @@ Nguồn video: Douyin / TikTok | ngôn ngữ nguồn đã chọn: Tiếng Trung 
 
 1. Chọn đúng ngôn ngữ nguồn (Trung cho Douyin, Anh cho TikTok) → bấm "Bắt đầu xử lý":
    tiến độ có hiện "Đã dịch x/y câu sang tiếng Việt": có/không
-   mở file .srt: text có phải tiếng Việt: có/không
+   sau khi xong / mở lại màn: thông báo "Đã dịch x/y…" còn giữ: có/không
+   bấm "Xem / sửa nội dung .srt": thấy đúng nội dung tiếng Việt: có/không
+   sửa 1 dòng trong hộp thoại → Lưu → mở lại: câu sửa còn: có/không
    nếu vẫn là tiếng Trung/Anh: có hiện message lỗi tiếng Việt: ... (không được thoát app)
 2. Thử chọn sai nguồn (video Trung nhưng chọn Tiếng Việt) → ghi rõ kết quả: ...
-3. Tạo thuyết minh sau khi có phụ đề:
+3. Mở Lịch sử → chọn "Có phụ đề tiếng Việt":
+   phụ đề có hiện ngay dưới video: có/không (bản trước: không)
+   đổi Gốc ↔ Vietsub ↔ Thuyết minh: không crash: có/không | phụ đề đúng bản: có/không
+4. Tạo thuyết minh sau khi có phụ đề:
    câu đọc có đúng mốc phụ đề: có/không | câu sau có bị chồng: có/không
-   giọng nghe tự nhiên hơn bản trước: có/không | tốc độ có bị quá nhanh: có/không
-4. Đổi giọng sang Nam 1.25x rồi tạo lại: có áp dụng: có/không
-5. Nhận xét thêm (ví dụ “vẫn trễ 1 giây ở câu 3”):
+   giọng có còn bị rè/cao bất thường: có/không | tốc độ có bị quá nhanh: có/không
+   lời gốc có còn chồng giọng đọc: có/không (đã duck âm nền)
+5. Đổi giọng sang Nam 1.25x rồi tạo lại: có áp dụng: có/không
+6. Nhận xét thêm (ví dụ “vẫn trễ 1 giây ở câu 3”):
    ...
 ```

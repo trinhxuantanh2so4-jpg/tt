@@ -8,9 +8,13 @@
 | # | Vấn đề | Nguyên nhân | Cách sửa | Trạng thái |
 |---|--------|-------------|----------|------------|
 | U1 | Tạo phụ đề có lúc text trùng “Lời gốc”, không báo lỗi | `Translator.translateAll()` bắt lỗi rồi trả `null`, `CueBuilder` giữ câu gốc nên người dùng tưởng đã dịch | Báo lỗi rõ khi không tải được model ML Kit / không dịch được câu nào; hiện số câu đã dịch trong tiến độ | ✅ (`f7d3485`, run `44849096548`) |
-| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; clip dài hơn cửa sổ của câu (mốc `startMs` → câu kế tiếp) | Ước lượng tốc độ theo độ dài câu/cửa sổ, giới hạn 0.85–1.45×; nếu vẫn dài thì ép nhịp tối đa 1.45× trong `NarrationTimeline.fitToWindow()` | ✅ (`f7d3485`, run `44849096548`, unit test JVM pass) |
+| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; file WAV có đoạn im lặng đầu/cuối đẩy lời trễ khỏi mốc `startMs`; âm gốc 20% làm lời gốc chồng giọng đọc | (1) chỉnh `speechRate` 0.9–1.3× theo cửa sổ câu; (2) `trimSilence()` cắt im lặng đầu/cuối; (3) duck âm gốc xuống ~5% trong lúc có lời; (4) bỏ hẳn hack tăng `sampleRate` vì làm giọng cao/rè | ✅ sửa lại sau QA, chờ CI |
 | U3 | Giọng nghe chưa hay | `pickVoice()` ưu tiên giọng offline đầu tiên, bỏ qua giọng Google/Neural chất lượng cao | Ưu tiên tên chứa `neural/studio/google/natural/premium/hd`; vẫn giữ theo giới tính Nữ/Nam | ✅ (`f7d3485`, run `44849096548`) |
 | U4 | QA khó kiểm tra “có dịch chưa / có khớp chưa” | Form cũ chỉ hỏi PASS/FAIL chung | Thêm form §9 trong `QA_CHECKLIST.md` | ✅ |
+| U5 | Chọn “Có phụ đề tiếng Việt” nhưng không thấy phụ đề trên video | `SubtitleConfiguration` chỉ có cờ FORCED, `DefaultTrackSelector` không tự bật track text trên một số máy | Thêm cờ DEFAULT + đặt `TrackSelectionParameters` ưu tiên `vi`, bật track chưa rõ ngôn ngữ | ✅ code, chờ CI |
+| U6 | Không xem được nội dung `.srt` ngay trong app | Màn phụ đề chỉ có danh sách cue, không có raw file | Thêm nút “Xem / sửa nội dung .srt”: hiện raw text, sửa text/mốc giờ, parse lại bằng `SrtWriter.parse()` rồi lưu | ✅ code, chờ CI |
+| U7 | Mất thông báo “Đã dịch x/y câu…” sau khi tạo xong | `refreshFromRecord()` ghi đè `tvSubtitleStatus` bằng “Đã có sẵn phụ đề” | Lưu summary vào state + `savedInstanceState` + SharedPreferences, ưu tiên hiển thị lại sau refresh | ✅ code, chờ CI |
+| U8 | Giọng nghe rè/quá nhanh | `fitToWindow()` tăng `sampleRate` → phát nhanh hơn **và cao hơn** (chipmunk) | Thay bằng cắt im lặng + cắt đuôi có fade; tốc độ chỉ chỉnh qua TTS `speechRate` (giữ cao độ) | ✅ code + unit test JVM, chờ CI |
 
 ### Giới hạn của phần A
 - Vẫn dùng TTS hệ thống: chất lượng phụ thuộc gói giọng có trên máy. Giả lập thường chỉ có giọng cơ bản.
@@ -38,5 +42,5 @@ Nguồn: README chính thức + API repo, kiểm tra ngày 2026-11-21.
 3. Có đoạn benchmark thực tế: cùng 1 video, so sánh độ trễ câu và chất lượng giọng giữa TTS hệ thống và VoiceStudio.
 
 ## Trạng thái tổng
-- Phần A: đã sửa code, chờ CI + QA trên giả lập (có giọng vi-VN nhưng chất lượng cơ bản).
+- Phần A: U1/U3/U4 xanh CI ở `f7d3485`. U2/U5–U8 đã sửa theo QA vòng sau, **chờ CI + QA lại** (giả lập chỉ có giọng vi-VN cơ bản).
 - Phần B: chỉ đánh giá, **không thay đổi dependency/license của dự án**.

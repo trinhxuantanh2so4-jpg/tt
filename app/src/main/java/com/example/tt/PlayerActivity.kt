@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.tt.data.DatabaseHelper
 import com.example.tt.databinding.ActivityPlayerBinding
@@ -138,6 +139,14 @@ class PlayerActivity : AppCompatActivity() {
     private fun play(index: Int) {
         val source = sources.getOrNull(index) ?: return
         try {
+            // Chọn rõ track text "vi" thay vì chỉ dựa vào cờ FORCED: trên một số
+            // thiết bị DefaultTrackSelector không tự bật track nên phụ đề không hiện.
+            player.trackSelectionParameters = TrackSelectionParameters.Builder(this)
+                .setPreferredTextLanguage("vi")
+                .setSelectUndeterminedTextLanguage(true)
+                .setDisabledTextTrackSelectionFlags(0)
+                .build()
+
             val builder = MediaItem.Builder().setUri(source.videoUri)
             source.subtitleUri?.let { srt ->
                 builder.setSubtitleConfigurations(
@@ -145,7 +154,7 @@ class PlayerActivity : AppCompatActivity() {
                         MediaItem.SubtitleConfiguration.Builder(srt)
                             .setMimeType(MimeTypes.APPLICATION_SUBRIP)
                             .setLanguage("vi")
-                            .setSelectionFlags(C.SELECTION_FLAG_FORCED)
+                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT or C.SELECTION_FLAG_FORCED)
                             .build()
                     )
                 )

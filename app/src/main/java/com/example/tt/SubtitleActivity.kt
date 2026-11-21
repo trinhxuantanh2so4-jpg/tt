@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -46,6 +47,7 @@ class SubtitleActivity : AppCompatActivity() {
         const val EXTRA_AUTO_RUN = "extra_auto_run"
         const val PREFS_KEY_CURRENT_SUBTITLE_RECORD = "current_subtitle_record_id"
         private const val PREFS_SUBTITLE_OPTS = "subtitle_opts"
+        private const val KEY_TRANSLATED_SUMMARY = "translated_summary"
 
         fun createIntent(
             context: Context,
@@ -86,6 +88,9 @@ class SubtitleActivity : AppCompatActivity() {
     private var keepBackground = true
     private var autoRun = false
 
+    /** Giữ lại thông báo "Đã dịch x/y" để hiện cả sau khi refreshFromRecord(). */
+    private var translatedSummary: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySubtitleBinding.inflate(layoutInflater)
@@ -107,6 +112,10 @@ class SubtitleActivity : AppCompatActivity() {
             return
         }
         record = loaded
+
+        translatedSummary = savedInstanceState?.getString(KEY_TRANSLATED_SUMMARY)
+            ?: getSharedPreferences(PREFS_SUBTITLE_OPTS, MODE_PRIVATE)
+                .getString("translated_$recordId", null)
 
         withNarration = intent.getBooleanExtra(EXTRA_WITH_NARRATION, false)
         keepBackground = intent.getBooleanExtra(EXTRA_KEEP_BACKGROUND, true)
@@ -133,6 +142,7 @@ class SubtitleActivity : AppCompatActivity() {
         setupNarrationControls()
         binding.btnGenerateSubtitle.setOnClickListener { generate() }
         binding.btnSaveSrt.setOnClickListener { saveSrt() }
+        binding.btnEditRawSrt.setOnClickListener { showSrtEditor() }
         binding.btnOpenPlayer.setOnClickListener { openPlayer() }
         binding.btnCreateNarration.setOnClickListener { startNarration() }
         binding.btnOpenDub.setOnClickListener { openDub() }
@@ -151,6 +161,11 @@ class SubtitleActivity : AppCompatActivity() {
         if (autoRun) {
             if (cues.isEmpty()) generate() else if (withNarration) startNarration()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        translatedSummary?.let { outState.putString(KEY_TRANSLATED_SUMMARY, it) }
     }
 
     private fun setupToolbar() {
@@ -264,11 +279,13 @@ class SubtitleActivity : AppCompatActivity() {
         binding.rvCues.visibility = if (cues.isEmpty()) View.GONE else View.VISIBLE
         binding.cardCues.visibility = if (cues.isEmpty()) View.GONE else View.VISIBLE
         subtitleAdapter.submitList(cues.toList())
-        binding.tvSubtitleStatus.text = if (saved.isNullOrEmpty()) {
-            getString(R.string.subtitle_cues_empty)
-        } else {
-            getString(R.string.subtitle_ready)
+        binding.tvSubtitleStatus.text = when {
+            !saved.isNullOrEmpty() && translatedSummary != null ->
+                translatedSummary!!
+            saved.isNullOrEmpty() -> getString(R.string.subtitle_cues_empty)
+            else -> getString(R.string.subtitle_ready)
         }
+        binding.btnEditRawSrt.visibility = if (cues.isEmpty()) View.GONE else View.VISIBLE
         binding.pbSubtitle.visibility = View.GONE
         binding.pbSubtitle.isIndeterminate = true
         binding.btnGenerateSubtitle.isEnabled = true
@@ -287,6 +304,11 @@ class SubtitleActivity : AppCompatActivity() {
                     binding.pbSubtitle.isIndeterminate = false
                     binding.pbSubtitle.progress = progress.percent
                     binding.tvSubtitleStatus.text = progress.message
+                    if (progress.message.startsWith("Đã dịch")) {
+                        translatedSummary = progress.message
+                        getSharedPreferences(PREFS_SUBTITLE_OPTS, MODE_PRIVATE)
+                            .edit().putString("translated_$recordId", progress.message).apply()
+                    }
                 }
                 withContext(Dispatchers.IO) {
                     db.updateSubtitle(recordId, path, "done", "vi", source)
@@ -414,6 +436,51 @@ class SubtitleActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
+            if (persistSubtitleNow(selectedSourceLanguage)) {
+                toast(getString(R.string.toast_subtitle_saved))
+                refreshFromRecord()
+            } else {
+                toast(getString(R.string.subtitle_save_mismatch))
+            }
+        }
+    }
+
+    /** Xem và sửa trực tiếp nội dung file .srt (text + mốc giờ). */
+    private fun showSrtEditor() {
+        if (cues.isEmpty()) {
+            toast(getString(R.string.toast_subtitle_missing))
+            return
+        }
+        val raw = repository.read(recordId)?.takeIf { it.isNotBlank() }
+            ?: SrtWriter.write(cues)
+        val view = layoutInflater.inflate(R.layout.dialog_srt_editor, null)
+        val input = view.findViewById<EditText>(R.id.etSrtContent)
+        input.setText(raw)
+        input.setSelection(input.text.length)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.dialog_srt_editor_title)
+            .setMessage(R.string.dialog_srt_editor_message)
+            .setView(view)
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .setPositiveButton(R.string.action_save) { _, _ ->
+                applyRawSrt(input.text.toString())
+            }
+            .show()
+    }
+
+    private fun applyRawSrt(raw: String) {
+        lifecycleScope.launch {
+            val parsed = withContext(Dispatchers.Default) { SrtWriter.parse(raw) }
+            if (parsed.isEmpty()) {
+                toast(getString(R.string.toast_srt_parse_error))
+                return@launch
+            }
+            val sources = cues.map { it.source }
+            val merged = parsed.mapIndexed { index, cue ->
+                cue.copy(index = index + 1, source = sources.getOrNull(index) ?: "")
+            }
+            cues.clear()
+            cues.addAll(merged)
             if (persistSubtitleNow(selectedSourceLanguage)) {
                 toast(getString(R.string.toast_subtitle_saved))
                 refreshFromRecord()
