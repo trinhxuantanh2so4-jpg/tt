@@ -15,9 +15,11 @@
 
 | # | Việc cần làm | Kết quả (điền) |
 |---|---|---|
-| A1 | Chưa nhập key → mở **Nguồn tải video (nâng cao)** → xem mục “Cấu hình Gemini AI” | Thấy ô key + nút “Kiểm tra Gemini Key”: có / không |
-| A2 | Vào màn **Tạo / sửa phụ đề** khi CHƯA có key | Switch “Tối ưu văn phong bằng Gemini AI” bị disabled và có chữ “(Chưa nhập API Key)”: có / không |
-| A3 | Nhập key Gemini thật → bấm “Kiểm tra Gemini Key” | Báo “Gemini Key hợp lệ!”: có / không · nếu lỗi, chép nguyên message tiếng Việt: ... |
+| A1 | Chưa nhập key → mở **Nguồn tải video (nâng cao)** → xem mục “Cấu hình Gemini AI” | Thấy ô key + nút “Kiểm tra Gemini Key”: có / không (đã xác nhận: có) |
+| A2 | Bấm **“Xoá cấu hình”** (xoá key cũ), rồi vào màn **Tạo / sửa phụ đề** | Switch “Tối ưu văn phong bằng Gemini AI” bị disabled và có chữ “(Chưa nhập API Key)”: có / không |
+| A3 | Tạo key Gemini MỚI (key cũ đã lộ phải revoke/rotate) → nhập → bấm “Kiểm tra Gemini Key” | Báo “Gemini Key hợp lệ!”: có / không · nếu lỗi, chép nguyên message dạng `Lỗi Gemini: HTTP ... (mã ...)`: ... |
+
+> Lưu ý A3: bản này dùng model `gemini-3.5-flash-lite` (model `gemini-1.5-flash` cũ đã bị Google ngừng phục vụ) và báo rõ mã HTTP thay vì “Key không hợp lệ hoặc hết hạn”. **Không dán key vào báo cáo** — chỉ chép phần message tiếng Việt, phần key đã được app tự che bằng `***`.
 | A4 | Bật switch Gemini → bấm “Bắt đầu xử lý” / “Tạo phụ đề” | Có hiện “Gemini đang trau chuốt phụ đề…”: có / không |
 | A5 | So sánh 1 câu trong `.srt` lúc **TẮT** Gemini và lúc **BẬT** Gemini | Câu trước: ... · câu sau: ... · nghe tự nhiên hơn: có / không / chưa kịp so sánh |
 | A6 | Để key sai rồi tạo phụ đề | App có crash/không tạo được file: có / không · text có bị rỗng/sai số câu: có / không |

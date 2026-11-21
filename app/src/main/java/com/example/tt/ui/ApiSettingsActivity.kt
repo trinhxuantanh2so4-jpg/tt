@@ -15,16 +15,12 @@ import com.example.tt.network.dtk.DtkErrors
 import com.example.tt.network.dtk.DtkException
 import com.google.gson.Gson
 import com.example.tt.subtitle.GeminiConfig
+import com.example.tt.subtitle.GeminiService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 
 /**
  * Màn cấu hình nguồn tải video: nhập Base URL + API key của DTK lưu ngay trên máy.
@@ -135,40 +131,28 @@ class ApiSettingsActivity : AppCompatActivity() {
         
         geminiJob = lifecycleScope.launch {
             try {
-                val ok = withContext(Dispatchers.IO) {
-                    validateGeminiKey(key)
+                when (val result = GeminiService.validateKey(key)) {
+                    is GeminiService.GeminiResult.Success -> {
+                        binding.tvGeminiStatus.text = getString(R.string.gemini_status_ok)
+                    }
+                    is GeminiService.GeminiResult.Failure -> {
+                        binding.tvGeminiStatus.text = getString(
+                            R.string.gemini_status_fail,
+                            result.message
+                        )
+                    }
                 }
-                if (ok) {
-                    binding.tvGeminiStatus.text = getString(R.string.gemini_status_ok)
-                } else {
-                    binding.tvGeminiStatus.text = getString(R.string.gemini_status_fail, "Key không hợp lệ hoặc hết hạn")
-                }
+            } catch (ce: CancellationException) {
+                throw ce
             } catch (e: Exception) {
-                binding.tvGeminiStatus.text = getString(R.string.gemini_status_fail, e.message ?: "Lỗi không xác định")
+                binding.tvGeminiStatus.text = getString(
+                    R.string.gemini_status_fail,
+                    e.message?.takeIf { it.isNotBlank() } ?: "Lỗi không xác định"
+                )
             } finally {
                 binding.btnTestGemini.isEnabled = true
             }
         }
-    }
-
-    private suspend fun validateGeminiKey(key: String): Boolean {
-        val client = OkHttpClient()
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$key"
-        
-        val json = JSONObject().apply {
-            put("contents", org.json.JSONArray().apply {
-                put(JSONObject().apply {
-                    put("parts", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("text", "Hi") })
-                    })
-                })
-            })
-        }
-        
-        val body = json.toString().toRequestBody("application/json".toMediaType())
-        val request = Request.Builder().url(url).post(body).build()
-        
-        return client.newCall(request).execute().use { it.isSuccessful }
     }
 
     /** Gọi GET /api/v1/auth/me bằng key đang nhập (không cần lưu trước). */
