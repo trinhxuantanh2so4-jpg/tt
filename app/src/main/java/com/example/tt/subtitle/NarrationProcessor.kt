@@ -95,11 +95,22 @@ class NarrationProcessor(private val context: Context) {
                         10 + (index * 58 / speech.size)
                     )
                 )
-                val clip = tts.synthesize(cue.text, voice)
+
+                // Can svg TTS theo "cua so" cua cau (den cau ke tiep) de khong bi
+                // chong/tron tieng khi van toc doc khac van toc nguon goc.
+                val windowMs = ((speech.getOrNull(index + 1)?.startMs ?: cue.endMs) - cue.startMs)
+                    .coerceIn(800L, 30_000L)
+                val estimatedMs = cue.text.length.toLong() * 1_000L / 13L
+                val ratio = (estimatedMs.toFloat() / windowMs.toFloat()).coerceIn(0.85f, 1.45f)
+                val cueVoice = voice.copy(
+                    speechRate = (voice.speechRate * ratio).coerceIn(0.7f, 1.6f)
+                )
+
+                val clip = tts.synthesize(cue.text, cueVoice)
                 if (clip != null && clip.samples.isNotEmpty()) {
-                    clips.add(
-                        NarrationTimeline.Clip(clip.samples, clip.sampleRate, cue.startMs)
-                    )
+                    val timelineClip = NarrationTimeline.Clip(clip.samples, clip.sampleRate, cue.startMs)
+                    // Phuong an du phong: neu TTS van dai hon cua so thi ep nhip nhe.
+                    clips.add(NarrationTimeline.fitToWindow(timelineClip, windowMs))
                 }
             }
             if (clips.isEmpty()) {

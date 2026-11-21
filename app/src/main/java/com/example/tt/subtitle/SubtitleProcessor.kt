@@ -59,6 +59,14 @@ class SubtitleProcessor(private val context: Context) {
         report(Progress("Đang dịch sang tiếng Việt…", 70))
         val translations = withContext(Dispatchers.IO) { Translator.translateAll(lines.map { it.text }, sourceLanguage) }
         coroutineContext.ensureActive()
+        val translatedCount = translations.count { it != null }
+        report(
+            Progress(
+                if (translatedCount == lines.size) "Đã dịch ${translatedCount}/${lines.size} câu sang tiếng Việt"
+                else "Đã dịch ${translatedCount}/${lines.size} câu (câu còn lại giữ nguyên)",
+                88
+            )
+        )
 
         report(Progress("Đang tạo file phụ đề…", 90))
         val cues = CueBuilder.build(lines, translations)

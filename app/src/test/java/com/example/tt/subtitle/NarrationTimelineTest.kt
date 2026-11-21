@@ -44,6 +44,28 @@ class NarrationTimelineTest {
     }
 
     @Test
+    fun `fitToWindow tang toc clip dai hon cua so`() {
+        // 1000 sample @ 1000Hz = 1000ms, cua so chi 500ms -> can tang toc ~2x,
+        // nhung bi gioi han 1.45x -> sampleRate tang tuong ung.
+        val clip = NarrationTimeline.Clip(FloatArray(1_000) { 0.5f }, 1_000, 0)
+        val fitted = NarrationTimeline.fitToWindow(clip, 500L, maxSpeedUp = 1.45f)
+
+        assertTrue("sampleRate phai tang: ${fitted.sampleRate}", fitted.sampleRate > clip.sampleRate)
+        assertEquals(1_450, fitted.sampleRate)
+        assertEquals(clip.samples.size, fitted.samples.size)
+        assertEquals(0L, fitted.startMs)
+    }
+
+    @Test
+    fun `fitToWindow giu nguyen clip ngan hon cua so`() {
+        val clip = NarrationTimeline.Clip(FloatArray(100) { 0.5f }, 1_000, 250)
+        val fitted = NarrationTimeline.fitToWindow(clip, 2_000L)
+        assertEquals(clip.sampleRate, fitted.sampleRate)
+        assertEquals(clip.startMs, fitted.startMs)
+        assertTrue(fitted.samples.contentEquals(clip.samples))
+    }
+
+    @Test
     fun `chuan hoa dinh khong vuot 0_9`() {
         val out = NarrationTimeline.render(
             clips = listOf(

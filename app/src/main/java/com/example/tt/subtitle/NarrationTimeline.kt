@@ -83,6 +83,30 @@ object NarrationTimeline {
         return out
     }
 
+    /**
+     * Ép clip TTS vào đúng cửa sổ của câu phụ đề. Nếu clip dài hơn cửa sổ thì
+     * tăng tốc phát (bằng cách tăng nhịp input sample rate) để câu sau không bị
+     * chồng; nếu clip đã vừa hoặc ngắn hơn thì giữ nguyên (để lại khoảng nghỉ).
+     *
+     * Chỉnh ở mức nhỏ (tối đa 1.45x) nên chất lượng giọng vẫn chấp nhận được.
+     * Hàm thuần Kotlin, test được trên JVM.
+     */
+    fun fitToWindow(
+        clip: Clip,
+        windowMs: Long,
+        maxSpeedUp: Float = 1.45f
+    ): Clip {
+        if (clip.samples.isEmpty() || clip.sampleRate <= 0 || windowMs <= 0) return clip
+        val naturalMs = clip.samples.size.toLong() * 1_000L / clip.sampleRate
+        // Chừa ~8% khoảng nghỉ để hai câu liền nhau không dính vào nhau.
+        val usableMs = (windowMs * 0.92f).toLong().coerceAtLeast(300L)
+        if (naturalMs <= usableMs) return clip
+
+        val speed = (naturalMs.toFloat() / usableMs.toFloat()).coerceIn(1f, maxSpeedUp)
+        if (speed <= 1.01f) return clip
+        return clip.copy(sampleRate = (clip.sampleRate * speed).roundToInt().coerceAtLeast(1))
+    }
+
     /** Uoc luong so giay can de doc het cac cau (chi de hien thi tien do). */
     fun estimateSeconds(texts: List<String>, charsPerSecond: Float = 14f): Int =
         (texts.sumOf { it.length } / charsPerSecond).roundToInt()

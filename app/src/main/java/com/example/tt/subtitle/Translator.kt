@@ -3,10 +3,14 @@ package com.example.tt.subtitle
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
-/** Dich bang ML Kit on-device. That bay loi thi giu nguyen cau goc. */
+/** Dich bang ML Kit on-device. That bay loi thi bao ro thay vi am thim giu cau goc. */
 object Translator {
+
+    class TranslationUnavailableException(message: String, cause: Throwable? = null) :
+        IllegalStateException(message, cause)
 
     suspend fun translateAll(
         texts: List<String>,
@@ -21,14 +25,30 @@ object Translator {
             .build()
         val translator = Translation.getClient(options)
         return try {
-            translator.downloadModelIfNeeded().await()
-            texts.map { text ->
+            try {
+                translator.downloadModelIfNeeded().await()
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                throw TranslationUnavailableException(
+                    "Không tải được model dịch tiếng Việt. Hãy kiểm tra Google Play services " +
+                        "và kết nối mạng, rồi thử lại.",
+                    t
+                )
+            }
+
+            val result = texts.map { text ->
                 runCatching { translator.translate(text).await() }
                     .getOrNull()
                     ?.takeIf { it.isNotBlank() }
             }
+            if (result.all { it == null }) {
+                throw TranslationUnavailableException(
+                    "Không dịch được câu nào sang tiếng Việt. Hãy kiểm tra Google Play services rồi thử lại."
+                )
+            }
+            result
         } finally {
-            translator.close()
+            runCatching { translator.close() }
         }
     }
 

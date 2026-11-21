@@ -124,10 +124,22 @@ class SystemTtsEngine(context: Context) : TtsEngine {
             TtsEngine.Gender.FEMALE -> listOf("female", "woman", "nu", "nữ", "f0", "f1", "sfg")
             TtsEngine.Gender.MALE -> listOf("male", "man", "nam", "m0", "m1", "svox")
         }
-        return vietnamese.firstOrNull { voice ->
+        // Uu tien giong chat luong cao (Google/Neural/Studio...). Giong can mang
+        // thuong nghe tu nhien hon giong offline, nen van duoc phep chon neu co.
+        val qualityHints = listOf("neural", "studio", "google", "natural", "premium", "hd")
+        fun isQuality(voice: Voice): Boolean {
             val name = voice.name.lowercase(Locale.ROOT)
-            keywords.any { name.contains(it) } && !voice.isNetworkConnectionRequired
-        } ?: vietnamese.firstOrNull { !it.isNetworkConnectionRequired }
+            return qualityHints.any { name.contains(it) }
+        }
+        fun matchesGender(voice: Voice): Boolean {
+            val name = voice.name.lowercase(Locale.ROOT)
+            return keywords.any { name.contains(it) }
+        }
+
+        return vietnamese.firstOrNull { isQuality(it) && matchesGender(it) }
+            ?: vietnamese.firstOrNull { isQuality(it) }
+            ?: vietnamese.firstOrNull { matchesGender(it) && !it.isNetworkConnectionRequired }
+            ?: vietnamese.firstOrNull { !it.isNetworkConnectionRequired }
             ?: vietnamese.first()
     }
 

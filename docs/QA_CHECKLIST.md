@@ -164,3 +164,25 @@ Thiết bị: giả lập / máy thật | Android ... | có giọng vi-VN: có/k
    Bấm "Sao chép log" rồi dán toàn bộ nội dung vào đây (không cần chụp màn hình từng dòng):
    ...
 ```
+
+## 9. Form QA dịch tiếng Việt & độ khớp (2026-11-21)
+
+Theo [`PLAN_SUBTITLE_SYNC_QUALITY.md`](PLAN_SUBTITLE_SYNC_QUALITY.md).
+
+```text
+APK mới đã cài: có / không
+Thiết bị: giả lập / máy thật | Android ... | Play services: có / không
+Nguồn video: Douyin / TikTok | ngôn ngữ nguồn đã chọn: Tiếng Trung / Tiếng Anh
+
+1. Chọn đúng ngôn ngữ nguồn (Trung cho Douyin, Anh cho TikTok) → bấm "Bắt đầu xử lý":
+   tiến độ có hiện "Đã dịch x/y câu sang tiếng Việt": có/không
+   mở file .srt: text có phải tiếng Việt: có/không
+   nếu vẫn là tiếng Trung/Anh: có hiện message lỗi tiếng Việt: ... (không được thoát app)
+2. Thử chọn sai nguồn (video Trung nhưng chọn Tiếng Việt) → ghi rõ kết quả: ...
+3. Tạo thuyết minh sau khi có phụ đề:
+   câu đọc có đúng mốc phụ đề: có/không | câu sau có bị chồng: có/không
+   giọng nghe tự nhiên hơn bản trước: có/không | tốc độ có bị quá nhanh: có/không
+4. Đổi giọng sang Nam 1.25x rồi tạo lại: có áp dụng: có/không
+5. Nhận xét thêm (ví dụ “vẫn trễ 1 giây ở câu 3”):
+   ...
+```
