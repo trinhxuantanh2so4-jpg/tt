@@ -31,9 +31,9 @@ Cập nhật: 2026-11-20.
 | Hạng mục | Lệnh / cách kiểm tra | Trạng thái |
 |----------|----------------------|-----------|
 | Resource compile | `aapt2 compile --dir app/src/main/res -o app/build/tmpcheck/aapt2.zip` | ✅ pass |
-| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`f7d3485`, run `44849096548`; thêm test `fitToWindow`) |
-| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`f7d3485`, run `44849096548`) |
-| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`f7d3485`) |
+| Unit test JVM | `gradle testDebugUnitTest` (CI) | ✅ pass (`cd86dbc`, run `44858532123`; test `fitToWindow` + `trimSilence` + duck) |
+| Build APK debug | `gradle assembleDebug` (CI) | ✅ pass (`cd86dbc`, run `44858532123`) |
+| Release asset | `v1.0.0/app-debug.apk` được ghi đè | ✅ đã cập nhật (`cd86dbc`, SHA256 `6190bd874f2610b17d6260f4e58604e59b783d88f09de130e43d0b768ecfba01`) |
 
 > APK build lại ở mỗi push lên `main` nên **SHA256 thay đổi dù code không đổi**; luôn lấy SHA mới nhất
 > từ API release, không ghi cứng vào docs.

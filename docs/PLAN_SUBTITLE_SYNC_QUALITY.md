@@ -8,7 +8,7 @@
 | # | Vấn đề | Nguyên nhân | Cách sửa | Trạng thái |
 |---|--------|-------------|----------|------------|
 | U1 | Tạo phụ đề có lúc text trùng “Lời gốc”, không báo lỗi | `Translator.translateAll()` bắt lỗi rồi trả `null`, `CueBuilder` giữ câu gốc nên người dùng tưởng đã dịch | Báo lỗi rõ khi không tải được model ML Kit / không dịch được câu nào; hiện số câu đã dịch trong tiến độ | ✅ (`f7d3485`, run `44849096548`) |
-| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; file WAV có đoạn im lặng đầu/cuối đẩy lời trễ khỏi mốc `startMs`; âm gốc 20% làm lời gốc chồng giọng đọc | (1) chỉnh `speechRate` 0.9–1.3× theo cửa sổ câu; (2) `trimSilence()` cắt im lặng đầu/cuối; (3) duck âm gốc xuống ~5% trong lúc có lời; (4) bỏ hẳn hack tăng `sampleRate` vì làm giọng cao/rè | ✅ sửa lại sau QA, chờ CI |
+| U2 | Thuyết minh không khớp câu, câu sau chồng câu trước | TTS đọc với 1 tốc độ cố định; file WAV có đoạn im lặng đầu/cuối đẩy lời trễ khỏi mốc `startMs`; âm gốc 20% làm lời gốc chồng giọng đọc | (1) chỉnh `speechRate` 0.9–1.3× theo cửa sổ câu; (2) `trimSilence()` cắt im lặng đầu/cuối; (3) duck âm gốc xuống ~5% trong lúc có lời; (4) bỏ hẳn hack tăng `sampleRate` vì làm giọng cao/rè | ✅ (`cd86dbc`, run `44858532123`, unit test JVM pass) |
 | U3 | Giọng nghe chưa hay | `pickVoice()` ưu tiên giọng offline đầu tiên, bỏ qua giọng Google/Neural chất lượng cao | Ưu tiên tên chứa `neural/studio/google/natural/premium/hd`; vẫn giữ theo giới tính Nữ/Nam | ✅ (`f7d3485`, run `44849096548`) |
 | U4 | QA khó kiểm tra “có dịch chưa / có khớp chưa” | Form cũ chỉ hỏi PASS/FAIL chung | Thêm form §9 trong `QA_CHECKLIST.md` | ✅ |
 | U5 | Chọn “Có phụ đề tiếng Việt” nhưng không thấy phụ đề trên video | `SubtitleConfiguration` chỉ có cờ FORCED, `DefaultTrackSelector` không tự bật track text trên một số máy | Thêm cờ DEFAULT + đặt `TrackSelectionParameters` ưu tiên `vi`, bật track chưa rõ ngôn ngữ | ✅ code, chờ CI |
@@ -42,5 +42,5 @@ Nguồn: README chính thức + API repo, kiểm tra ngày 2026-11-21.
 3. Có đoạn benchmark thực tế: cùng 1 video, so sánh độ trễ câu và chất lượng giọng giữa TTS hệ thống và VoiceStudio.
 
 ## Trạng thái tổng
-- Phần A: U1/U3/U4 xanh CI ở `f7d3485`. U2/U5–U8 đã sửa theo QA vòng sau, **chờ CI + QA lại** (giả lập chỉ có giọng vi-VN cơ bản).
+- Phần A: U1–U8 đều đã sửa và xanh CI (`cd86dbc`, run `44858532123`), chờ QA lại trên giả lập (chỉ có giọng vi-VN cơ bản).
 - Phần B: chỉ đánh giá, **không thay đổi dependency/license của dự án**.
