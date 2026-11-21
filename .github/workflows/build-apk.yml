@@ -44,8 +44,8 @@ jobs:
       - name: Report build errors
         if: failure()
         run: |
-          cat build.log test.log 2>/dev/null | grep -n -E "^e: |error:|Unresolved reference|FAILURE: Build|What went wrong|Could not resolve|Caused by|Execution failed|AAPT|Android resource|tests? (completed|failed)|There were failing tests" \
-            | sed 's/\r//g' | cut -c1-900 | head -8 | while IFS= read -r line; do
+          cat build.log test.log 2>/dev/null | grep -n -E "^e: |error:|Unresolved reference|FAILURE: Build|What went wrong|Could not resolve|Caused by|Execution failed|AAPT|Android resource|tests? (completed|failed)|There were failing tests|FAILED|Assertion|expected:|GeminiServiceTest" \
+            | sed 's/\r//g' | cut -c1-900 | head -25 | while IFS= read -r line; do
               echo "::error::$line"
             done
           echo "---- deps ----"
